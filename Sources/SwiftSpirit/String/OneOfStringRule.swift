@@ -8,18 +8,20 @@ class OneOfStringRule : StringRule {
     typealias T = String
 
     let tree: TernarySearchTree
+    let errorParseCode: ParseCode
 
-    init(tree: TernarySearchTree) {
+    init(tree: TernarySearchTree, errorParseCode: ParseCode = .onOfStringNoMatch) {
         self.tree = tree
+        self.errorParseCode = errorParseCode
     }
 
     override func parse(seek: String.Index, string: Data) -> ParseState {
         guard !tree.strings.isEmpty else {
-            return ParseState(seek: seek, code: .onOfStringNoMatch)
+            return ParseState(seek: seek, code: errorParseCode)
         }
 
         guard let endSeek = tree.parse(seek: seek, string: string.scalars) else {
-            return ParseState(seek: seek, code: .onOfStringNoMatch)
+            return ParseState(seek: seek, code: errorParseCode)
         }
 
         return ParseState(seek: endSeek, code: .complete)
@@ -27,7 +29,7 @@ class OneOfStringRule : StringRule {
 
     override func parseWithResult(seek: String.Index, string: Data) -> ParseResult<T> {
         guard !tree.strings.isEmpty else {
-            return ParseResult(seek: seek, code: .onOfStringNoMatch)
+            return ParseResult(seek: seek, code: errorParseCode)
         }
 
         var result: String?
@@ -43,36 +45,14 @@ class OneOfStringRule : StringRule {
     }
 }
 
-class AlwaysSuccessfulOneOfStringRule : OneOfStringRule {
-    override func parse(seek: String.Index, string: Data) -> ParseState {
-        ParseState(seek: tree.parse(seek: seek, string: string.scalars) ?? seek, code: .complete)
-    }
-
-    override func parseWithResult(seek: String.Index, string: Data) -> ParseResult<String> {
-        var result: String?
-        let resultSeek = tree.parseWithResult(seek: seek, string: string.scalars, out: &result) ?? seek
-        return ParseResult(seek: resultSeek, code: .complete, result: result ?? "")
-    }
-
-    override func hasMatch(seek: String.Index, string: Data) -> Bool {
-        true
-    }
-}
-
 func oneOf(firstString: String, strings: String...) -> OneOfStringRule {
     guard !strings.isEmpty else {
-        if firstString.isEmpty {
-            return AlwaysSuccessfulOneOfStringRule(tree: TernarySearchTree(strings: []))
-        } else {
-            return OneOfStringRule(tree: TernarySearchTree(strings: [firstString]))
-        }
+        let errorCode: ParseCode = firstString.isEmpty ? .complete : .onOfStringNoMatch
+        return OneOfStringRule(tree: TernarySearchTree(strings: [firstString]), errorParseCode: errorCode)
     }
 
     let nonEmptyStrings = strings.filter { !$0.isEmpty }
     let tree = TernarySearchTree(strings: [firstString] + nonEmptyStrings)
-    if nonEmptyStrings.count == strings.count {
-        return OneOfStringRule(tree: tree)
-    } else {
-        return AlwaysSuccessfulOneOfStringRule(tree: tree)
-    }
+    let errorCode: ParseCode = nonEmptyStrings.count == strings.count ? .complete : .onOfStringNoMatch
+    return OneOfStringRule(tree: tree, errorParseCode: errorCode)
 }

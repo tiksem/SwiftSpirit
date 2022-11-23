@@ -4,14 +4,12 @@
 
 import Foundation
 
-class StringRule : RuleProtocol {
-    typealias T = String
-
-    func parse(seek: String.Index, string: Data) -> ParseState {
+class StringRule : BaseRule<String> {
+    override func parse(seek: String.Index, string: Data) -> ParseState {
         ParseState(seek: seek, code: .invalidRule)
     }
 
-    func parseWithResult(seek: String.Index, string: Data) -> ParseResult<String> {
+    override func parseWithResult(seek: String.Index, string: Data) -> ParseResult<String> {
         ParseResult(seek: seek, code: .invalidRule)
     }
 }
@@ -34,27 +32,19 @@ func |(a: ExactStringRule, b: ExactStringRule) -> OneOfStringRule {
 
 func |(a: OneOfStringRule, b: String) -> OneOfStringRule {
     let tree = TernarySearchTree(strings: a.tree.strings + [b])
-    if a is AlwaysSuccessfulOneOfStringRule || b.isEmpty {
-        return AlwaysSuccessfulOneOfStringRule(tree: tree)
-    } else {
-        return OneOfStringRule(tree: tree)
-    }
+    let errorCode: ParseCode = a.errorParseCode == .complete || b.isEmpty ? .complete : .onOfStringNoMatch
+    return OneOfStringRule(tree: tree, errorParseCode: errorCode)
 }
 
 func |(a: OneOfStringRule, b: OneOfStringRule) -> OneOfStringRule {
     let tree = TernarySearchTree(strings: a.tree.strings + b.tree.strings)
-    if a is AlwaysSuccessfulOneOfStringRule || b is AlwaysSuccessfulOneOfStringRule {
-        return AlwaysSuccessfulOneOfStringRule(tree: tree)
-    } else {
-        return OneOfStringRule(tree: tree)
-    }
+    let errorCode: ParseCode = a.errorParseCode == .complete || b.errorParseCode == .complete ?
+            .complete : .onOfStringNoMatch
+    return OneOfStringRule(tree: tree, errorParseCode: errorCode)
 }
 
 func |(a: String, b: OneOfStringRule) -> OneOfStringRule {
     let tree = TernarySearchTree(strings: [a] + b.tree.strings)
-    if b is AlwaysSuccessfulOneOfStringRule || a.isEmpty {
-        return AlwaysSuccessfulOneOfStringRule(tree: tree)
-    } else {
-        return OneOfStringRule(tree: tree)
-    }
+    let errorCode: ParseCode = b.errorParseCode == .complete || a.isEmpty ? .complete : .onOfStringNoMatch
+    return OneOfStringRule(tree: tree, errorParseCode: errorCode)
 }

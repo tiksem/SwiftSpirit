@@ -4,10 +4,8 @@
 
 import Foundation
 
-class AnyCharRule : RuleProtocol {
-    typealias T = UnicodeScalar
-
-    func parse(seek: String.Index, string: Data) -> ParseState {
+class AnyCharRule : BaseRule<UnicodeScalar> {
+    override func parse(seek: String.Index, string: Data) -> ParseState {
         guard seek != string.endIndex else {
             return ParseState(seek: seek, code: .eof)
         }
@@ -15,7 +13,7 @@ class AnyCharRule : RuleProtocol {
         return ParseState(seek: string.scalars.index(after: seek), code: .complete)
     }
 
-    func parseWithResult(seek: String.Index, string: Data) -> ParseResult<T> {
+    override func parseWithResult(seek: String.Index, string: Data) -> ParseResult<T> {
         guard seek != string.endIndex else {
             return ParseResult(seek: seek, code: .eof)
         }

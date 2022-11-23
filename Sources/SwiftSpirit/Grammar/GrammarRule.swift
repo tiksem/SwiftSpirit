@@ -4,18 +4,17 @@
 
 import Foundation
 
-class GrammarRule<Rule : RuleProtocol, Result> : RuleProtocol {
-    typealias T = Result
-    private let factory: () -> Grammar<Rule, Result>
+class GrammarRule<Result> : BaseRule<Result> {
+    private let factory: () -> Grammar<Result>
     private lazy var grammarForParse = factory()
-    private var pool: [Grammar<Rule, Result>] = []
+    private var pool: [Grammar<Result>] = []
     private var seek = 0
 
-    init(factory: @escaping () -> Grammar<Rule, Result>) {
+    init(factory: @escaping () -> Grammar<Result>) {
         self.factory = factory
     }
 
-    private func takeGrammar() -> Grammar<Rule, Result> {
+    private func takeGrammar() -> Grammar<Result> {
         if pool.count <= seek {
             pool.append(factory())
         }
@@ -29,11 +28,11 @@ class GrammarRule<Rule : RuleProtocol, Result> : RuleProtocol {
         seek -= 1
     }
 
-    func parse(seek: String.Index, string: Data) -> ParseState {
+    override func parse(seek: String.Index, string: Data) -> ParseState {
         grammarForParse.rule.parse(seek: seek, string: string)
     }
 
-    func parseWithResult(seek: String.Index, string: Data) -> ParseResult<Result> {
+    override func parseWithResult(seek: String.Index, string: Data) -> ParseResult<Result> {
         let grammar = takeGrammar()
         grammar.resetResult()
         let pRes = grammar.rule.parse(seek: seek, string: string)
@@ -43,8 +42,16 @@ class GrammarRule<Rule : RuleProtocol, Result> : RuleProtocol {
 
         return ParseResult(state: pRes, result: nil)
     }
+
+    func hasMatch(seek: String.Index, string: Data) -> Bool {
+        grammarForParse.rule.hasMatch(seek: seek, string: string)
+    }
+
+    func isThreadSafe() -> Bool {
+        false
+    }
 }
 
-func grammar<Rule : RuleProtocol, Result>(_ factory: @escaping () -> Grammar<Rule, Result>) -> GrammarRule<Rule, Result> {
+func grammar<Result>(_ factory: @escaping () -> Grammar<Result>) -> GrammarRule<Result> {
     GrammarRule(factory: factory)
 }

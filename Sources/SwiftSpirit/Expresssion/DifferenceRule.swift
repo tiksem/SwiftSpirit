@@ -4,18 +4,16 @@
 
 import Foundation
 
-class DifferenceRule<Main, Diff> : RuleProtocol where Main : RuleProtocol, Diff : RuleProtocol{
-    typealias T = Main.T
+class DifferenceRule<Main, Diff> : BaseRule<Main> {
+    private let main: BaseRule<Main>
+    private let diff: BaseRule<Diff>
 
-    private let main: Main
-    private let diff: Diff
-
-    init(main: Main, diff: Diff) {
+    init(main: BaseRule<Main>, diff: BaseRule<Diff>) {
         self.main = main
         self.diff = diff
     }
 
-    func parse(seek: String.Index, string: Data) -> ParseState {
+    override func parse(seek: String.Index, string: Data) -> ParseState {
         let mainRes = main.parse(seek: seek, string: string)
         guard mainRes.code == .complete else {
             return mainRes
@@ -28,7 +26,7 @@ class DifferenceRule<Main, Diff> : RuleProtocol where Main : RuleProtocol, Diff 
         return mainRes
     }
 
-    func parseWithResult(seek: String.Index, string: Data) -> ParseResult<T> {
+    override func parseWithResult(seek: String.Index, string: Data) -> ParseResult<T> {
         let mainRes = main.parseWithResult(seek: seek, string: string)
         guard mainRes.state.code == .complete else {
             return mainRes
@@ -46,6 +44,6 @@ class DifferenceRule<Main, Diff> : RuleProtocol where Main : RuleProtocol, Diff 
     }
 }
 
-func -<A: RuleProtocol, B : RuleProtocol> (a: A, b: B) -> DifferenceRule<A, B> {
+func -<A, B> (a: BaseRule<A>, b: BaseRule<B>) -> DifferenceRule<A, B> {
     DifferenceRule<A, B>(main: a, diff: b)
 }

@@ -4,8 +4,7 @@
 
 import Foundation
 
-class OrAStringBSubstringRule<A : RuleProtocol, B : RuleProtocol> : BaseOrRule<A, B, String>
-        where A.T == String, B.T == Substring {
+class OrAStringBSubstringRule : BaseOrRule<String, Substring, String> {
 
     override func convertAResult(from: ParseResult<String>) -> ParseResult<String> {
         from
@@ -16,8 +15,7 @@ class OrAStringBSubstringRule<A : RuleProtocol, B : RuleProtocol> : BaseOrRule<A
     }
 }
 
-class OrASubstringBStringRule<A : RuleProtocol, B : RuleProtocol> : BaseOrRule<A, B, String>
-        where A.T == Substring, B.T == String {
+class OrASubstringBStringRule : BaseOrRule<Substring, String, String> {
 
     override func convertAResult(from: ParseResult<Substring>) -> ParseResult<String> {
         ParseResult(state: from.state, result: String(from.result!))
@@ -28,10 +26,10 @@ class OrASubstringBStringRule<A : RuleProtocol, B : RuleProtocol> : BaseOrRule<A
     }
 }
 
-func |<A : RuleProtocol, B : RuleProtocol>(a: A, b: B) -> OrAStringBSubstringRule<A, B> where A.T == String, B.T == Substring {
+func |(a: BaseRule<String>, b: BaseRule<Substring>) -> OrAStringBSubstringRule {
     OrAStringBSubstringRule(a, b)
 }
 
-func |<A : RuleProtocol, B : RuleProtocol>(a: A, b: B) -> OrASubstringBStringRule<A, B> where A.T == Substring, B.T == String {
+func |(a: BaseRule<Substring>, b: BaseRule<String>) -> OrASubstringBStringRule {
     OrASubstringBStringRule(a, b)
 }

@@ -4,19 +4,17 @@
 
 import Foundation
 
-class RepeatRule<Repeated : RuleProtocol> : RuleProtocol {
-    typealias T = [Repeated.T]
-
-    private let repeated: Repeated
+class RepeatRule<T> : BaseRule<[T]> {
+    private let repeated: BaseRule<T>
     private let range: ClosedRange<Int>
 
-    init(repeated: Repeated, range: ClosedRange<Int>) {
+    init(repeated: BaseRule<T>, range: ClosedRange<Int>) {
         assert(range.lowerBound >= 0)
         self.range = range
         self.repeated = repeated
     }
 
-    func parse(seek: String.Index, string: Data) -> ParseState {
+    override func parse(seek: String.Index, string: Data) -> ParseState {
         var i = seek
         for _ in 0..<range.lowerBound {
             let r = repeated.parse(seek: i, string: string)
@@ -38,9 +36,9 @@ class RepeatRule<Repeated : RuleProtocol> : RuleProtocol {
         return ParseState(seek: i, code: .complete)
     }
 
-    func parseWithResult(seek: String.Index, string: Data) -> ParseResult<T> {
+    override func parseWithResult(seek: String.Index, string: Data) -> ParseResult<[T]> {
         var i = seek
-        var result = [Repeated.T]()
+        var result = [T]()
         if result.capacity < range.lowerBound {
             result.reserveCapacity(range.lowerBound)
         }
@@ -88,16 +86,16 @@ class RepeatRule<Repeated : RuleProtocol> : RuleProtocol {
     }
 }
 
-extension RuleProtocol {
-    func `repeat`(range: Range<Int>) -> RepeatRule<Self> {
+extension BaseRule {
+    func `repeat`(range: Range<Int>) -> RepeatRule<T> {
         RepeatRule(repeated: self, range: range.lowerBound...range.upperBound - 1)
     }
 
-    func `repeat`(range: ClosedRange<Int>) -> RepeatRule<Self> {
+    func `repeat`(range: ClosedRange<Int>) -> RepeatRule<T> {
         RepeatRule(repeated: self, range: range)
     }
 
-    func `repeat`(times: Int) -> RepeatRule<Self> {
+    func `repeat`(times: Int) -> RepeatRule<T> {
         RepeatRule(repeated: self, range: times...times)
     }
 }
@@ -105,10 +103,10 @@ extension RuleProtocol {
 postfix operator +
 postfix operator *
 
-postfix func +<R : RuleProtocol> (rule: R) -> RepeatRule<R> {
+postfix func +<T>(rule: BaseRule<T>) -> RepeatRule<T> {
     RepeatRule(repeated: rule, range: 1...Int.max)
 }
 
-postfix func *<R : RuleProtocol> (rule: R) -> RepeatRule<R> {
+postfix func *<T>(rule: BaseRule<T>) -> RepeatRule<T> {
     RepeatRule(repeated: rule, range: 0...Int.max)
 }

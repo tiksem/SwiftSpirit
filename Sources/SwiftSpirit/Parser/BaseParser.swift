@@ -4,10 +4,8 @@
 
 import Foundation
 
-class BaseParser<R : RuleProtocol> : ParserProtocol {
-    typealias T = R.T
-
-    func getRule() -> R {
+class BaseParser<T> : ParserProtocol {
+    func getRule() -> BaseRule<T> {
         fatalError("Override getRule")
     }
 

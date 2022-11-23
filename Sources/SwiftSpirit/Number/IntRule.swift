@@ -4,8 +4,10 @@
 
 import Foundation
 
-class IntRule<I> : RuleProtocol where I : FixedWidthInteger & SignedInteger {
-    func parse(seek: String.Index, string: Data) -> ParseState {
+class IntRule<I> : BaseRule<I> where I : FixedWidthInteger & SignedInteger {
+    typealias Me = IntRule<I>
+
+    override func parse(seek: String.Index, string: Data) -> ParseState {
         if (seek == string.endIndex) {
             return ParseState(seek: seek, code: .eof)
         }
@@ -53,7 +55,7 @@ class IntRule<I> : RuleProtocol where I : FixedWidthInteger & SignedInteger {
         return ParseState(seek: i, code: .complete)
     }
 
-    func parseWithResult(seek: String.Index, string: Data) -> ParseResult<I> {
+    override func parseWithResult(seek: String.Index, string: Data) -> ParseResult<I> {
         if (seek == string.endIndex) {
             return ParseResult(seek: seek, code: .eof)
         }

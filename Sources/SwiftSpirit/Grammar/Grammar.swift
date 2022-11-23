@@ -4,12 +4,12 @@
 
 import Foundation
 
-struct Grammar<Rule : RuleProtocol, Result> {
-    let rule: Rule
+struct Grammar<Result> {
+    let rule: BaseRule<Any>
     let resultProvider: () -> Result
     let resetResult: () -> ()
 
-    init(rule: Rule, resultProvider: @escaping () -> Result, resetResult: @escaping () -> ()) {
+    init(rule: BaseRule<Any>, resultProvider: @escaping () -> Result, resetResult: @escaping () -> ()) {
         self.rule = rule
         self.resultProvider = resultProvider
         self.resetResult = resetResult

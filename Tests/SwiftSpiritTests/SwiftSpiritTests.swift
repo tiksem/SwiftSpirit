@@ -9,8 +9,5 @@ final class SwiftSpiritTests: XCTestCase {
         XCTAssertEqual(SwiftSpirit().text, "Hello, World!")
 
         let s = "💖abcdef" | "dsdsds"
-        print(s.index(s.startIndex, offsetBy: 1).encodedOffset)
-        print(s.utf8.index(s.utf8.startIndex, offsetBy: 4).encodedOffset)
-        print(s.utf8.index(s.utf8.startIndex, offsetBy: 4).utf16Offset(in: s))
     }
 }

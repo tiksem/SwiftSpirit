@@ -4,20 +4,18 @@
 
 import Foundation
 
-class SplitRule<Main : RuleProtocol, Divider : RuleProtocol> : RuleProtocol {
-    typealias T = [Main.T]
-
-    let main: Main
-    let divider: Divider
+class SplitRule<T> : BaseRule<[T]> {
+    let main: BaseRule<T>
+    let divider: BaseRule<Any>
     let range: ClosedRange<Int>
 
-    init(main: Main, divider: Divider, range: ClosedRange<Int>) {
+    init(main: BaseRule<T>, divider: BaseRule<Any>, range: ClosedRange<Int>) {
         self.main = main
         self.divider = divider
         self.range = range
     }
 
-    func parse(seek: String.Index, string: Data) -> ParseState {
+    override func parse(seek: String.Index, string: Data) -> ParseState {
         var i = seek
 
         if (range.lowerBound != 0) {
@@ -61,9 +59,9 @@ class SplitRule<Main : RuleProtocol, Divider : RuleProtocol> : RuleProtocol {
         return ParseState(seek: mainResSeek, code: .complete)
     }
 
-    func parseWithResult(seek: String.Index, string: Data) -> ParseResult<T> {
+    override func parseWithResult(seek: String.Index, string: Data) -> ParseResult<[T]> {
         var i = seek
-        var result = T()
+        var result = [T]()
 
         if (range.lowerBound != 0) {
             for _ in 0..<range.lowerBound {
@@ -140,32 +138,32 @@ class SplitRule<Main : RuleProtocol, Divider : RuleProtocol> : RuleProtocol {
     }
 }
 
-extension RuleProtocol {
-    func split<Divider : RuleProtocol>(divider: Divider, range: ClosedRange<Int>) -> SplitRule<Self, Divider> {
+extension BaseRule {
+    func split(divider: BaseRule<Any>, range: ClosedRange<Int>) -> SplitRule<T> {
         SplitRule(main: self, divider: divider, range: range)
     }
 
-    func split<Divider : RuleProtocol>(divider: Divider, range: Range<Int>) -> SplitRule<Self, Divider> {
+    func split(divider: BaseRule<Any>, range: Range<Int>) -> SplitRule<T> {
         SplitRule(main: self, divider: divider, range: range.lowerBound...range.upperBound - 1)
     }
 
-    func split<Divider : RuleProtocol>(divider: Divider, times: Int) -> SplitRule<Self, Divider> {
+    func split(divider: BaseRule<Any>, times: Int) -> SplitRule<T> {
         SplitRule(main: self, divider: divider, range: times...times)
     }
 
-    func split<Divider : RuleProtocol>(divider: Divider, range: PartialRangeFrom<Int>) -> SplitRule<Self, Divider> {
+    func split(divider: BaseRule<Any>, range: PartialRangeFrom<Int>) -> SplitRule<T> {
         SplitRule(main: self, divider: divider, range: range.lowerBound...Int.max)
     }
 
-    func split<Divider : RuleProtocol>(divider: Divider, range: PartialRangeUpTo<Int>) -> SplitRule<Self, Divider> {
+    func split(divider: BaseRule<Any>, range: PartialRangeUpTo<Int>) -> SplitRule<T> {
         SplitRule(main: self, divider: divider, range: 0...range.upperBound - 1)
     }
 
-    func split<Divider : RuleProtocol>(divider: Divider, range: PartialRangeThrough<Int>) -> SplitRule<Self, Divider> {
+    func split(divider: BaseRule<Any>, range: PartialRangeThrough<Int>) -> SplitRule<T> {
         SplitRule(main: self, divider: divider, range: 0...range.upperBound)
     }
 }
 
-func %<Main : RuleProtocol, Divider : RuleProtocol>(rule: Main, divider: Divider) -> SplitRule<Main, Divider> {
+func %<T>(rule: BaseRule<T>, divider: BaseRule<Any>) -> SplitRule<T> {
     rule.split(divider: divider, range: 1...Int.max)
 }

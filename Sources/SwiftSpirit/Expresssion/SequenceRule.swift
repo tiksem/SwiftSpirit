@@ -4,18 +4,16 @@
 
 import Foundation
 
-class SequenceRule<A, B> : RuleProtocol where A : RuleProtocol, B : RuleProtocol {
-    typealias T = Substring
+class SequenceRule<A, B> : BaseRule<Substring> {
+    private let a: BaseRule<A>
+    private let b: BaseRule<B>
 
-    private let a: A
-    private let b: B
-
-    init(_ a: A, _ b: B) {
+    init(_ a: BaseRule<A>, _ b: BaseRule<B>) {
         self.a = a
         self.b = b
     }
 
-    func parse(seek: String.Index, string: Data) -> ParseState {
+    override func parse(seek: String.Index, string: Data) -> ParseState {
         let aRes = a.parse(seek: seek, string: string)
         guard aRes.code == .complete else {
             return aRes
@@ -24,7 +22,7 @@ class SequenceRule<A, B> : RuleProtocol where A : RuleProtocol, B : RuleProtocol
         return b.parse(seek: aRes.seek, string: string)
     }
 
-    func parseWithResult(seek: String.Index, string: Data) -> ParseResult<Substring> {
+    override func parseWithResult(seek: String.Index, string: Data) -> ParseResult<Substring> {
         let aRes = a.parse(seek: seek, string: string)
         guard aRes.code == .complete else {
             return ParseResult(seek: aRes.seek, code: aRes.code)
@@ -48,6 +46,6 @@ class SequenceRule<A, B> : RuleProtocol where A : RuleProtocol, B : RuleProtocol
     }
 }
 
-func +<A : RuleProtocol, B : RuleProtocol> (a: A, b: B) -> SequenceRule<A, B> {
+func +<A, B>(a: BaseRule<A>, b: BaseRule<B>) -> SequenceRule<A, B> {
     SequenceRule<A, B>(a, b)
 }

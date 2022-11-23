@@ -4,9 +4,7 @@
 
 import Foundation
 
-class CharPredicateRule : RuleProtocol {
-    typealias T = UnicodeScalar
-
+class CharPredicateRule : BaseRule<UnicodeScalar> {
     let predicate: (UnicodeScalar) -> Bool
     let data: CharPredicateData?
 
@@ -15,7 +13,7 @@ class CharPredicateRule : RuleProtocol {
         self.data = data
     }
 
-    func parse(seek: String.Index, string: Data) -> ParseState {
+    override func parse(seek: String.Index, string: Data) -> ParseState {
         guard seek != string.endIndex else {
             return ParseState(seek: seek, code: .eof)
         }
@@ -28,7 +26,7 @@ class CharPredicateRule : RuleProtocol {
         }
     }
 
-    func parseWithResult(seek: String.Index, string: Data) -> ParseResult<T> {
+    override func parseWithResult(seek: String.Index, string: Data) -> ParseResult<T> {
         guard seek != string.endIndex else {
             return ParseResult(seek: seek, code: .eof)
         }

@@ -4,8 +4,8 @@
 
 import Foundation
 
-class FloatRule<T : BinaryFloatingPoint> : RuleProtocol {
-    func parse(seek: String.Index, string: Data) -> ParseState {
+class FloatRule<T : BinaryFloatingPoint> : BaseRule<T> {
+    override func parse(seek: String.Index, string: Data) -> ParseState {
         if seek == string.endIndex {
             return ParseState(seek: seek, code: .eof)
         }
@@ -148,7 +148,7 @@ class FloatRule<T : BinaryFloatingPoint> : RuleProtocol {
         }
     }
 
-    func parseWithResult(seek: String.Index, string: Data) -> ParseResult<T> {
+    override func parseWithResult(seek: String.Index, string: Data) -> ParseResult<T> {
         if seek == string.endIndex {
             return ParseResult(seek: seek, code: .eof)
         }

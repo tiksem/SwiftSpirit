@@ -4,16 +4,16 @@
 
 import Foundation
 
-class BaseOrRule<A, B, T> : RuleProtocol where A : RuleProtocol, B : RuleProtocol {
-    private let a: A
-    private let b: B
+class BaseOrRule<A, B, T> : BaseRule<T> {
+    private let a: BaseRule<A>
+    private let b: BaseRule<B>
 
-    init(_ a: A, _ b: B) {
+    init(_ a: BaseRule<A>, _ b: BaseRule<B>) {
         self.a = a
         self.b = b
     }
 
-    func parse(seek: String.Index, string: Data) -> ParseState {
+    override func parse(seek: String.Index, string: Data) -> ParseState {
         let aRes = a.parse(seek: seek, string: string)
         if aRes.code == .complete {
             return aRes
@@ -22,7 +22,7 @@ class BaseOrRule<A, B, T> : RuleProtocol where A : RuleProtocol, B : RuleProtoco
         return b.parse(seek: seek, string: string)
     }
 
-    func parseWithResult(seek: String.Index, string: Data) -> ParseResult<T> {
+    override func parseWithResult(seek: String.Index, string: Data) -> ParseResult<T> {
         let aRes = a.parseWithResult(seek: seek, string: string)
         if aRes.state.code == .complete {
             return convertAResult(from: aRes)
@@ -36,12 +36,16 @@ class BaseOrRule<A, B, T> : RuleProtocol where A : RuleProtocol, B : RuleProtoco
         a.hasMatch(seek: seek, string: string) || b.hasMatch(seek: seek, string: string)
     }
 
-    func convertAResult(from: ParseResult<A.T>) -> ParseResult<T> {
+    func convertAResult(from: ParseResult<A>) -> ParseResult<T> {
         from as! ParseResult<T>
     }
 
-    func convertBResult(from: ParseResult<B.T>) -> ParseResult<T> {
+    func convertBResult(from: ParseResult<B>) -> ParseResult<T> {
         from as! ParseResult<T>
+    }
+
+    override func copy() -> BaseOrRule<A, B, T> {
+       BaseOrRule<A, B, T>(a.copy(), b.copy())
     }
 }
 
