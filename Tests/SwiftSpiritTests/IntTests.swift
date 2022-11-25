@@ -1,12 +1,18 @@
 import XCTest
 @testable import SwiftSpirit
 
-final class IntTests: XCTestCase {
-    let r = int.compile()
-    
+final class IntTest<T : FixedWidthInteger & SignedInteger> {
+    let rule: IntRule<T>
+    let r: BaseParser<T>
+
+    init(rule: IntRule<T>) {
+        self.rule = rule
+        self.r = rule.compile()
+    }
+
     func testStartedWithZero() throws {
         do {
-            try r.parseValueOrThrow(string: "034534554")
+            try r.parseValueOrThrow(string: "03")
         } catch ParseError.intStartedFromZero(let seek) {
         }
     }
@@ -27,34 +33,30 @@ final class IntTests: XCTestCase {
     
     
     func testMinus() throws {
-        try XCTAssertEqual(-345, r.parseValueOrThrow(string: "-345"))
+        try XCTAssertEqual(-34, r.parseValueOrThrow(string: "-34"))
     }
     
     
     func testPlus() throws {
-        try XCTAssertEqual(+345, r.parseValueOrThrow(string: "+345"))
+        try XCTAssertEqual(+34, r.parseValueOrThrow(string: "+34"))
     }
-    
     
     func testDefault() throws {
-        try XCTAssertEqual(23523454, r.parseValueOrThrow(string: "23523454"))
+        try XCTAssertEqual(23, r.parseValueOrThrow(string: "23"))
     }
-    
-    
+
     func testOutOfRange() throws {
-        let res = r.parseWithResult(string: Int.max.description + "0")
+        let res = r.parseWithResult(string: T.max.description + "0")
         XCTAssertEqual(.intOverflow, res.state.code)
     }
-    
-    
+
     func testInvalid() throws {
-        let res = r.parseWithResult(string: "dsds65537")
+        let res = r.parseWithResult(string: "dsds67")
         XCTAssertEqual(.invalidInt, res.state.code)
     }
     
-    
     func testNoInt() throws {
-        let r = (!int).compile()
+        let r = (!rule).compile()
         XCTAssertEqual(r.matchesAtBeginning(string: "+dsds"), true)
         XCTAssertEqual(r.matchesAtBeginning(string: "-dsdsds"), true)
         XCTAssertEqual(r.matchesAtBeginning(string: "dsdsds"), true)
@@ -64,7 +66,7 @@ final class IntTests: XCTestCase {
         XCTAssertEqual(r.matchesAtBeginning(string: "-0"), false)
         XCTAssertEqual(r.matchesAtBeginning(string: "0"), false)
         XCTAssertEqual(r.matchesAtBeginning(string: "0345"), true)
-        XCTAssertEqual(r.matchesAtBeginning(string: "456"), false)
+        XCTAssertEqual(r.matchesAtBeginning(string: "100"), false)
         XCTAssertEqual(r.matchesAtBeginning(string: ""), true)
     }
 
@@ -77,9 +79,34 @@ final class IntTests: XCTestCase {
         XCTAssertEqual(r.matchesAtBeginning(string: "+4"), true)
         XCTAssertEqual(r.matchesAtBeginning(string: "-0"), true)
         XCTAssertEqual(r.matchesAtBeginning(string: "0"), true)
-        XCTAssertEqual(r.matchesAtBeginning(string: "0345"), false)
-        XCTAssertEqual(r.matchesAtBeginning(string: "456"), true)
+        XCTAssertEqual(r.matchesAtBeginning(string: "034"), false)
+        XCTAssertEqual(r.matchesAtBeginning(string: "100"), true)
         XCTAssertEqual(r.matchesAtBeginning(string: ""), false)
-        XCTAssertEqual(r.matchesAtBeginning(string: "3434rror"), true)
+        XCTAssertEqual(r.matchesAtBeginning(string: "100rror"), true)
+    }
+
+    func test() throws {
+        try testStartedWithZero()
+        try testZero()
+        try testMinusZero()
+        try testPlusZero()
+        try testMinus()
+        try testPlus()
+        try testDefault()
+        try testInvalid()
+        try testNoInt()
+        try testIntMatches()
     }
 }
+
+final class IntTests : XCTestCase {
+    func test() throws {
+        try IntTest(rule: int8).test()
+        try IntTest(rule: int16).test()
+        try IntTest(rule: int32).test()
+        try IntTest(rule: int64).test()
+        try IntTest(rule: int).test()
+    }
+}
+
+
