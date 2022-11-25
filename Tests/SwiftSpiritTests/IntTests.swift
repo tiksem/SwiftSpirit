@@ -1,7 +1,7 @@
 import XCTest
 @testable import SwiftSpirit
 
-final class SwiftSpiritTests: XCTestCase {
+final class IntTests: XCTestCase {
     let r = int.compile()
     
     func testStartedWithZero() throws {
@@ -53,17 +53,33 @@ final class SwiftSpiritTests: XCTestCase {
     }
     
     
-//    func testNoInt() throws {
-//        XCTAssertEqual(r.matchesAtBeginning(string: "+dsds"), true)
-//        XCTAssertEqual(r.matchesAtBeginning(string: "-dsdsds"), true)
-//        XCTAssertEqual(r.matchesAtBeginning(string: "dsdsds"), true)
-//        XCTAssertEqual(r.matchesAtBeginning(string: "-"), true)
-//        XCTAssertEqual(r.matchesAtBeginning(string: "+"), true)
-//        XCTAssertEqual(r.matchesAtBeginning(string: "+4"), false)
-//        XCTAssertEqual(r.matchesAtBeginning(string: "-0"), false)
-//        XCTAssertEqual(r.matchesAtBeginning(string: "0"), false)
-//        XCTAssertEqual(r.matchesAtBeginning(string: "0345"), true)
-//        XCTAssertEqual(r.matchesAtBeginning(string: "456"), false)
-//        XCTAssertEqual(r.matchesAtBeginning(string: ""), true)
-//    }
+    func testNoInt() throws {
+        let r = (!int).compile()
+        XCTAssertEqual(r.matchesAtBeginning(string: "+dsds"), true)
+        XCTAssertEqual(r.matchesAtBeginning(string: "-dsdsds"), true)
+        XCTAssertEqual(r.matchesAtBeginning(string: "dsdsds"), true)
+        XCTAssertEqual(r.matchesAtBeginning(string: "-"), true)
+        XCTAssertEqual(r.matchesAtBeginning(string: "+"), true)
+        XCTAssertEqual(r.matchesAtBeginning(string: "+4"), false)
+        XCTAssertEqual(r.matchesAtBeginning(string: "-0"), false)
+        XCTAssertEqual(r.matchesAtBeginning(string: "0"), false)
+        XCTAssertEqual(r.matchesAtBeginning(string: "0345"), true)
+        XCTAssertEqual(r.matchesAtBeginning(string: "456"), false)
+        XCTAssertEqual(r.matchesAtBeginning(string: ""), true)
+    }
+
+    func testIntMatches() throws {
+        XCTAssertEqual(r.matchesAtBeginning(string: "+dsds"), false)
+        XCTAssertEqual(r.matchesAtBeginning(string: "-dsdsds"), false)
+        XCTAssertEqual(r.matchesAtBeginning(string: "dsdsds"), false)
+        XCTAssertEqual(r.matchesAtBeginning(string: "-"), false)
+        XCTAssertEqual(r.matchesAtBeginning(string: "+"), false)
+        XCTAssertEqual(r.matchesAtBeginning(string: "+4"), true)
+        XCTAssertEqual(r.matchesAtBeginning(string: "-0"), true)
+        XCTAssertEqual(r.matchesAtBeginning(string: "0"), true)
+        XCTAssertEqual(r.matchesAtBeginning(string: "0345"), false)
+        XCTAssertEqual(r.matchesAtBeginning(string: "456"), true)
+        XCTAssertEqual(r.matchesAtBeginning(string: ""), false)
+        XCTAssertEqual(r.matchesAtBeginning(string: "3434rror"), true)
+    }
 }

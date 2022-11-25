@@ -56,7 +56,7 @@ class IntRule<I> : BaseRule<I> where I : FixedWidthInteger & SignedInteger {
             i = s.index(after: i)
         } while i != s.endIndex
 
-        return ParseState(seek: i, code: .complete)
+        return ParseState(seek: successFlag ? i : seek, code: successFlag ? .complete : .invalidInt)
     }
 
     override func parseWithResult(seek: String.Index, string: Data) -> ParseResult<I> {

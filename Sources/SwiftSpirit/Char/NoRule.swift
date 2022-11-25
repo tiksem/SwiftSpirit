@@ -56,3 +56,7 @@ class NoRule<T> : BaseRule<UnicodeScalar> {
     }
     #endif
 }
+
+prefix func !<T>(a: BaseRule<T>) -> NoRule<T> {
+    NoRule(rule: a)
+}
