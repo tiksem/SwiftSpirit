@@ -4,7 +4,7 @@
 
 import Foundation
 
-struct ParseState {
+public struct ParseState {
     let seek: String.Index
     let code: ParseCode
 }

@@ -5,6 +5,12 @@
 import Foundation
 
 class AnyCharRule : BaseRule<UnicodeScalar> {
+    override init(name: String? = nil) {
+        #if DEBUG
+        super.init(name: name ?? "char")
+        #endif
+    }
+
     override func parse(seek: String.Index, string: Data) -> ParseState {
         guard seek != string.endIndex else {
             return ParseState(seek: seek, code: .eof)
@@ -24,24 +30,12 @@ class AnyCharRule : BaseRule<UnicodeScalar> {
     func hasMatch(seek: String.Index, string: Data) -> Bool {
         seek != string.endIndex
     }
-}
 
-func -(a: AnyCharRule, b: CharPredicateRule) -> CharPredicateRule {
-    CharPredicateRule(predicate: {
-        !b.predicate($0)
-    })
+    override func name(name: String) -> AnyCharRule {
+        AnyCharRule(name: name)
+    }
 }
 
 func -(a: CharPredicateRule, b: AnyCharRule) -> CharPredicateRule {
-    CharPredicateRule(predicate: { _ in false }, data: CharPredicateData(set: CharacterSet()))
-}
-
-func -(a: AnyCharRule, b: CharacterSet) -> CharPredicateRule {
-    CharPredicateRule(predicate: {
-        !b.contains($0)
-    })
-}
-
-func -(a: CharacterSet, b: AnyCharRule) -> CharPredicateRule {
-    CharPredicateRule(predicate: { _ in false }, data: CharPredicateData(set: CharacterSet()))
+    CharPredicateRule(predicate: { _ in false }, data: CharPredicateData(set: CharacterSet(), inverted: false))
 }

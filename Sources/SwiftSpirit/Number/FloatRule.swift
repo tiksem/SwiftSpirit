@@ -5,6 +5,12 @@
 import Foundation
 
 class FloatRule<T : BinaryFloatingPoint> : BaseRule<T> {
+    override init(name: String?) {
+        #if DEBUG
+        super.init(name: name)
+        #endif
+    }
+
     override func parse(seek: String.Index, string: Data) -> ParseState {
         if seek == string.endIndex {
             return ParseState(seek: seek, code: .eof)
@@ -472,5 +478,9 @@ class FloatRule<T : BinaryFloatingPoint> : BaseRule<T> {
         }
 
         return false
+    }
+
+    override func name(name: String) -> FloatRule<T> {
+        FloatRule(name: name)
     }
 }

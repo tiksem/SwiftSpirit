@@ -4,7 +4,7 @@
 
 import Foundation
 
-class IntRule<I> : BaseRule<I> where I : FixedWidthInteger & SignedInteger {
+class UIntRule<I> : BaseRule<I> where I : FixedWidthInteger & UnsignedInteger {
     override init(name: String?) {
         #if DEBUG
         super.init(name: name)
@@ -17,7 +17,6 @@ class IntRule<I> : BaseRule<I> where I : FixedWidthInteger & SignedInteger {
         }
 
         var result = I(0)
-        var successFlag = false
         let s = string.utf8
         var i = seek.samePosition(in: s)!
         repeat {
@@ -25,7 +24,7 @@ class IntRule<I> : BaseRule<I> where I : FixedWidthInteger & SignedInteger {
             switch ch {
             case ASCII.digits:
                 let digit = ch.toDigit()
-                if (digit == 0 && !successFlag) {
+                if (digit == 0 && seek == i) {
                     let nextIndex = s.index(after: i)
                     if (nextIndex == s.endIndex) {
                         return ParseState(seek: nextIndex, code: .complete)
@@ -38,19 +37,15 @@ class IntRule<I> : BaseRule<I> where I : FixedWidthInteger & SignedInteger {
                         }
                     }
                 } else {
-                    successFlag = true
+                    let resultBefore = result
                     result &*= 10
                     result &+= I(digit)
-                    if (result < 0) {
-                        return ParseState(seek: seek, code: .intOverflow)
+                    if (result < resultBefore) {
+                        return ParseState(seek: seek, code: .uintOverflow)
                     }
                 }
-            case ASCII.plus, ASCII.minus:
-                if i != seek {
-                    return ParseState(seek: seek, code: .invalidInt)
-                }
             default:
-                return ParseState(seek: i, code: successFlag ? .complete : .invalidInt)
+                return ParseState(seek: seek, code: seek != i ? .complete : .invalidInt)
             }
 
             i = s.index(after: i)
@@ -65,16 +60,15 @@ class IntRule<I> : BaseRule<I> where I : FixedWidthInteger & SignedInteger {
         }
 
         var result = I(0)
-        var successFlag = false
         let s = string.utf8
         var i = seek.samePosition(in: s)!
-        var sign = 1
+
         repeat {
             let ch = s[i]
             switch ch {
             case ASCII.digits:
                 let digit = ch.toDigit()
-                if (digit == 0 && !successFlag) {
+                if (digit == 0 && seek == i) {
                     let nextIndex = s.index(after: i)
                     if (nextIndex == s.endIndex) {
                         return ParseResult(seek: nextIndex, code: .complete, result: 0)
@@ -87,25 +81,16 @@ class IntRule<I> : BaseRule<I> where I : FixedWidthInteger & SignedInteger {
                         }
                     }
                 } else {
-                    successFlag = true
+                    let resultBefore = result
                     result &*= 10
                     result &+= I(digit)
-                    if (result < 0) {
-                        return ParseResult(seek: i, code: .intOverflow)
+                    if (result < resultBefore) {
+                        return ParseResult(seek: i, code: .uintOverflow)
                     }
                 }
-            case ASCII.minus:
-                sign = -1
-                if i != seek {
-                    return ParseResult(seek: seek, code: .invalidInt)
-                }
-            case ASCII.plus:
-                if i != seek {
-                    return ParseResult(seek: seek, code: .invalidInt)
-                }
             default:
-                if (successFlag) {
-                    return ParseResult(seek: i, code: .complete, result: result * I(sign))
+                if (seek != i) {
+                    return ParseResult(seek: i, code: .complete, result: result)
                 } else {
                     return ParseResult(seek: i, code: .invalidInt)
                 }
@@ -114,10 +99,10 @@ class IntRule<I> : BaseRule<I> where I : FixedWidthInteger & SignedInteger {
             i = s.index(after: i)
         } while i != string.endIndex
 
-        return ParseResult(seek: i, code: .complete, result: result * I(sign))
+        return ParseResult(seek: i, code: .complete, result: result)
     }
 
-    override func name(name: String) -> IntRule<I> {
-        IntRule(name: name)
+    override func name(name: String) -> UIntRule<I> {
+        UIntRule(name: name)
     }
 }

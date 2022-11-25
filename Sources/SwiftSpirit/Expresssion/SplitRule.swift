@@ -4,15 +4,18 @@
 
 import Foundation
 
-class SplitRule<T> : BaseRule<[T]> {
+class SplitRule<T, D> : BaseRule<[T]> {
     let main: BaseRule<T>
-    let divider: BaseRule<Any>
+    let divider: BaseRule<D>
     let range: ClosedRange<Int>
 
-    init(main: BaseRule<T>, divider: BaseRule<Any>, range: ClosedRange<Int>) {
+    init(main: BaseRule<T>, divider: BaseRule<D>, range: ClosedRange<Int>, name: String? = nil) {
         self.main = main
         self.divider = divider
         self.range = range
+        #if DEBUG
+        super.init(name: name ?? "\(main.wrappedName).split(\(divider.name), \(range))")
+        #endif
     }
 
     override func parse(seek: String.Index, string: Data) -> ParseState {
@@ -136,34 +139,70 @@ class SplitRule<T> : BaseRule<[T]> {
             return true
         }
     }
+
+    #if DEBUG
+    override func debug(context: DebugContext) -> DebugRule<[T]> {
+        let base = SplitRule(main: main.debug(context: context),
+                divider: divider.debug(context: context), range: range, name: name)
+        return DebugRule(base: base, context: context)
+    }
+    #endif
 }
 
 extension BaseRule {
-    func split(divider: BaseRule<Any>, range: ClosedRange<Int>) -> SplitRule<T> {
+    func split<D>(divider: BaseRule<D>, range: ClosedRange<Int>) -> SplitRule<T, D> {
         SplitRule(main: self, divider: divider, range: range)
     }
 
-    func split(divider: BaseRule<Any>, range: Range<Int>) -> SplitRule<T> {
-        SplitRule(main: self, divider: divider, range: range.lowerBound...range.upperBound - 1)
+    func split<D>(divider: BaseRule<D>, range: Range<Int>) -> SplitRule<T, D> {
+        SplitRule(main: self, divider: divider, range: range.toClosed())
     }
 
-    func split(divider: BaseRule<Any>, times: Int) -> SplitRule<T> {
+    func split<D>(divider: BaseRule<D>, times: Int) -> SplitRule<T, D> {
         SplitRule(main: self, divider: divider, range: times...times)
     }
 
-    func split(divider: BaseRule<Any>, range: PartialRangeFrom<Int>) -> SplitRule<T> {
-        SplitRule(main: self, divider: divider, range: range.lowerBound...Int.max)
+    func split<D>(divider: BaseRule<D>, range: PartialRangeFrom<Int>) -> SplitRule<T, D> {
+        SplitRule(main: self, divider: divider, range: range.toClosed())
     }
 
-    func split(divider: BaseRule<Any>, range: PartialRangeUpTo<Int>) -> SplitRule<T> {
-        SplitRule(main: self, divider: divider, range: 0...range.upperBound - 1)
+    func split<D>(divider: BaseRule<D>, range: PartialRangeUpTo<Int>) -> SplitRule<T, D> {
+        SplitRule(main: self, divider: divider, range: range.toClosed())
     }
 
-    func split(divider: BaseRule<Any>, range: PartialRangeThrough<Int>) -> SplitRule<T> {
-        SplitRule(main: self, divider: divider, range: 0...range.upperBound)
+    func split<D>(divider: BaseRule<D>, range: PartialRangeThrough<Int>) -> SplitRule<T, D> {
+        SplitRule(main: self, divider: divider, range: range.toClosed())
+    }
+
+    func split(divider: String, range: ClosedRange<Int>) -> SplitRule<T, String> {
+        SplitRule(main: self, divider: str(divider), range: range)
+    }
+
+    func split(divider: String, range: Range<Int>) -> SplitRule<T, String> {
+        SplitRule(main: self, divider: str(divider), range: range.toClosed())
+    }
+
+    func split(divider: String, times: Int) -> SplitRule<T, String> {
+        SplitRule(main: self, divider: str(divider), range: times...times)
+    }
+
+    func split(divider: String, range: PartialRangeFrom<Int>) -> SplitRule<T, String> {
+        SplitRule(main: self, divider: str(divider), range: range.toClosed())
+    }
+
+    func split(divider: String, range: PartialRangeUpTo<Int>) -> SplitRule<T, String> {
+        SplitRule(main: self, divider: str(divider), range: range.toClosed())
+    }
+
+    func split(divider: String, range: PartialRangeThrough<Int>) -> SplitRule<T, String> {
+        SplitRule(main: self, divider: str(divider), range: range.toClosed())
     }
 }
 
-func %<T>(rule: BaseRule<T>, divider: BaseRule<Any>) -> SplitRule<T> {
+func %<T, D>(rule: BaseRule<T>, divider: BaseRule<D>) -> SplitRule<T, D> {
+    rule.split(divider: divider, range: 1...Int.max)
+}
+
+func %<T>(rule: BaseRule<T>, divider: String) -> SplitRule<T, String> {
     rule.split(divider: divider, range: 1...Int.max)
 }

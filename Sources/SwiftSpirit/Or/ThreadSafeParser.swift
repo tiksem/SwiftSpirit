@@ -23,7 +23,7 @@ class ThreadSafeParser<T> : BaseParser<T> {
         if rule != nil {
             return rule!
         } else {
-            let rule = originalRule.copy()
+            let rule = originalRule.clone()
             pthread_rwlock_wrlock(&lock)
             rules[thread] = rule
             pthread_rwlock_unlock(&lock)

@@ -8,10 +8,13 @@ class RepeatRule<T> : BaseRule<[T]> {
     private let repeated: BaseRule<T>
     private let range: ClosedRange<Int>
 
-    init(repeated: BaseRule<T>, range: ClosedRange<Int>) {
+    init(repeated: BaseRule<T>, range: ClosedRange<Int>, name: String? = nil) {
         assert(range.lowerBound >= 0)
         self.range = range
         self.repeated = repeated
+        #if DEBUG
+        super.init(name: name ?? "\(repeated.wrappedName).repeat(\(range))")
+        #endif
     }
 
     override func parse(seek: String.Index, string: Data) -> ParseState {
@@ -84,15 +87,34 @@ class RepeatRule<T> : BaseRule<[T]> {
 
         return repeated.hasMatch(seek: i, string: string)
     }
+
+    #if DEBUG
+    override func debug(context: DebugContext) -> DebugRule<[T]> {
+        let base = RepeatRule(repeated: repeated.debug(context: context), range: range, name: name)
+        return DebugRule(base: base, context: context)
+    }
+    #endif
 }
 
 extension BaseRule {
     func `repeat`(range: Range<Int>) -> RepeatRule<T> {
-        RepeatRule(repeated: self, range: range.lowerBound...range.upperBound - 1)
+        RepeatRule(repeated: self, range: range.toClosed())
     }
 
     func `repeat`(range: ClosedRange<Int>) -> RepeatRule<T> {
         RepeatRule(repeated: self, range: range)
+    }
+
+    func `repeat`(range: PartialRangeUpTo<Int>) -> RepeatRule<T> {
+        RepeatRule(repeated: self, range: range.toClosed())
+    }
+
+    func `repeat`(range: PartialRangeThrough<Int>) -> RepeatRule<T> {
+        RepeatRule(repeated: self, range: range.toClosed())
+    }
+
+    func `repeat`(range: PartialRangeFrom<Int>) -> RepeatRule<T> {
+        RepeatRule(repeated: self, range: range.toClosed())
     }
 
     func `repeat`(times: Int) -> RepeatRule<T> {

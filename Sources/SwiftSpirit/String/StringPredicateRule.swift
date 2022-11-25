@@ -36,19 +36,74 @@ class StringPredicateRule : StringRule {
     override func parseWithResult(seek: Swift.String.Index, string: Data) -> ParseResult<T> {
         super.parseWithResult(seek: seek, string: string)
     }
+
+    func hasMatch(seek: String.Index, string: Data) -> Bool {
+        let scalars = string.scalars
+        var i = seek.samePosition(in: scalars)!
+        for _ in 0..<range.lowerBound {
+            if !predicate(scalars[i]) {
+                return false
+            }
+            i = scalars.index(after: i)
+        }
+
+        return true
+    }
 }
 
 extension CharPredicateRule {
     func `repeat`(range: Range<Int>) -> StringPredicateRule {
-        StringPredicateRule(predicate: predicate, range: range.lowerBound...range.upperBound - 1)
+        StringPredicateRule(predicate: predicate, range: range.toClosed())
     }
 
     func `repeat`(range: ClosedRange<Int>) -> StringPredicateRule {
         StringPredicateRule(predicate: predicate, range: range)
     }
 
+    func `repeat`(range: PartialRangeFrom<Int>) -> StringPredicateRule {
+        StringPredicateRule(predicate: predicate, range: range.toClosed())
+    }
+
+    func `repeat`(range: PartialRangeThrough<Int>) -> StringPredicateRule {
+        StringPredicateRule(predicate: predicate, range: range.toClosed())
+    }
+
+    func `repeat`(range: PartialRangeUpTo<Int>) -> StringPredicateRule {
+        StringPredicateRule(predicate: predicate, range: range.toClosed())
+    }
+
     func `repeat`(times: Int) -> StringPredicateRule {
         StringPredicateRule(predicate: predicate, range: times...times)
+    }
+
+    subscript(range: ClosedRange<Int>) -> StringPredicateRule {
+        get {
+            StringPredicateRule(predicate: predicate, range: range)
+        }
+    }
+
+    subscript(range: Range<Int>) -> StringPredicateRule {
+        get {
+            StringPredicateRule(predicate: predicate, range: range.toClosed())
+        }
+    }
+
+    subscript(range: PartialRangeFrom<Int>) -> StringPredicateRule {
+        get {
+            StringPredicateRule(predicate: predicate, range: range.toClosed())
+        }
+    }
+
+    subscript(range: PartialRangeUpTo<Int>) -> StringPredicateRule {
+        get {
+            StringPredicateRule(predicate: predicate, range: range.toClosed())
+        }
+    }
+
+    subscript(range: PartialRangeThrough<Int>) -> StringPredicateRule {
+        get {
+            StringPredicateRule(predicate: predicate, range: range.toClosed())
+        }
     }
 }
 

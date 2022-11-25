@@ -5,12 +5,15 @@
 import Foundation
 
 class BaseOrRule<A, B, T> : BaseRule<T> {
-    private let a: BaseRule<A>
-    private let b: BaseRule<B>
+    let a: BaseRule<A>
+    let b: BaseRule<B>
 
-    init(_ a: BaseRule<A>, _ b: BaseRule<B>) {
+    init(_ a: BaseRule<A>, _ b: BaseRule<B>, name: String? = nil) {
         self.a = a
         self.b = b
+        #if DEBUG
+        super.init(name: name ?? "\(a.wrappedName) or \(b.wrappedName)")
+        #endif
     }
 
     override func parse(seek: String.Index, string: Data) -> ParseState {
@@ -44,8 +47,23 @@ class BaseOrRule<A, B, T> : BaseRule<T> {
         from as! ParseResult<T>
     }
 
-    override func copy() -> BaseOrRule<A, B, T> {
-       BaseOrRule<A, B, T>(a.copy(), b.copy())
+    #if DEBUG
+    override func debug(context: DebugContext) -> DebugRule<T> {
+        let base = BaseOrRule(a.debug(context: context), b.debug(context: context), name: name)
+        return DebugRule(base: base, context: context)
+    }
+
+    override var nameShouldBeWrapped: Bool {
+        get { true }
+    }
+    #endif
+
+    override func name(name: String) -> BaseOrRule<A, B, T> {
+        BaseOrRule<A, B, T>(a, b, name: name)
+    }
+
+    override func clone() -> BaseOrRule<A, B, T> {
+       BaseOrRule<A, B, T>(a.clone(), b.clone(), name: name)
     }
 }
 

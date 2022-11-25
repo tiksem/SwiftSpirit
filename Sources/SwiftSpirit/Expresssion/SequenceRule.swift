@@ -8,9 +8,12 @@ class SequenceRule<A, B> : BaseRule<Substring> {
     private let a: BaseRule<A>
     private let b: BaseRule<B>
 
-    init(_ a: BaseRule<A>, _ b: BaseRule<B>) {
+    init(_ a: BaseRule<A>, _ b: BaseRule<B>, name: String? = nil) {
         self.a = a
         self.b = b
+        #if DEBUG
+        super.init(name: name ?? "\(a.wrappedName)+\(b.wrappedName)")
+        #endif
     }
 
     override func parse(seek: String.Index, string: Data) -> ParseState {
@@ -44,6 +47,21 @@ class SequenceRule<A, B> : BaseRule<Substring> {
 
         return b.hasMatch(seek: aRes.seek, string: string)
     }
+
+    override func clone() -> SequenceRule<A, B> {
+        SequenceRule(a.clone(), b.clone(), name: name)
+    }
+
+    #if DEBUG
+    override func debug(context: DebugContext) -> DebugRule<T> {
+        let base = SequenceRule(a.debug(context: context), b.debug(context: context), name: name)
+        return DebugRule(base: base, context: context)
+    }
+
+    override var nameShouldBeWrapped: Bool {
+        get { true }
+    }
+    #endif
 }
 
 func +<A, B>(a: BaseRule<A>, b: BaseRule<B>) -> SequenceRule<A, B> {

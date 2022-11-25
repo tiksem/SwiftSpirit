@@ -32,19 +32,19 @@ func |(a: ExactStringRule, b: ExactStringRule) -> OneOfStringRule {
 
 func |(a: OneOfStringRule, b: String) -> OneOfStringRule {
     let tree = TernarySearchTree(strings: a.tree.strings + [b])
-    let errorCode: ParseCode = a.errorParseCode == .complete || b.isEmpty ? .complete : .onOfStringNoMatch
+    let errorCode: ParseCode = a.errorParseCode == .complete || b.isEmpty ? .complete : .oneOfStringNoMatch
     return OneOfStringRule(tree: tree, errorParseCode: errorCode)
 }
 
 func |(a: OneOfStringRule, b: OneOfStringRule) -> OneOfStringRule {
     let tree = TernarySearchTree(strings: a.tree.strings + b.tree.strings)
     let errorCode: ParseCode = a.errorParseCode == .complete || b.errorParseCode == .complete ?
-            .complete : .onOfStringNoMatch
+            .complete : .oneOfStringNoMatch
     return OneOfStringRule(tree: tree, errorParseCode: errorCode)
 }
 
 func |(a: String, b: OneOfStringRule) -> OneOfStringRule {
     let tree = TernarySearchTree(strings: [a] + b.tree.strings)
-    let errorCode: ParseCode = b.errorParseCode == .complete || a.isEmpty ? .complete : .onOfStringNoMatch
+    let errorCode: ParseCode = b.errorParseCode == .complete || a.isEmpty ? .complete : .oneOfStringNoMatch
     return OneOfStringRule(tree: tree, errorParseCode: errorCode)
 }

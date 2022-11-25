@@ -10,8 +10,11 @@ class GrammarRule<Result> : BaseRule<Result> {
     private var pool: [Grammar<Result>] = []
     private var seek = 0
 
-    init(factory: @escaping () -> Grammar<Result>) {
+    init(factory: @escaping () -> Grammar<Result>, name: String? = nil) {
         self.factory = factory
+        #if DEBUG
+        super.init(name: name ?? "grammar")
+        #endif
     }
 
     private func takeGrammar() -> Grammar<Result> {
@@ -45,6 +48,10 @@ class GrammarRule<Result> : BaseRule<Result> {
 
     func hasMatch(seek: String.Index, string: Data) -> Bool {
         grammarForParse.rule.hasMatch(seek: seek, string: string)
+    }
+
+    override func name(name: String) -> GrammarRule<Result> {
+        GrammarRule(factory: factory, name: name)
     }
 
     func isThreadSafe() -> Bool {

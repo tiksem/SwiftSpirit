@@ -4,7 +4,7 @@
 
 import Foundation
 
-struct ParseResult<T> {
+public struct ParseResult<T> {
     let state: ParseState
     let result: T?
 
