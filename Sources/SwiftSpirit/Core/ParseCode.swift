@@ -18,6 +18,7 @@ public enum ParseCode {
          exactStringNoMatch,
          predicateStringNotEnoughData,
          oneOfStringNoMatch,
+         noFailed,
          eof,
          invalidRule;
 
@@ -53,6 +54,8 @@ public enum ParseCode {
             return .eof(seek: seek)
         case .invalidRule:
             return .invalidRule(seek: seek)
+        case .noFailed:
+            return .noFailed(seek: seek)
         }
     }
 }
