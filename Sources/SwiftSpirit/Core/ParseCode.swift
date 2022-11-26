@@ -25,7 +25,7 @@ public enum ParseCode {
     func toError(seek: String.Index) -> ParseError {
         switch self {
         case .complete:
-            return .complete(seek: seek)
+            fatalError()
         case .invalidInt:
             return .invalidInt(seek: seek)
         case .intOverflow:

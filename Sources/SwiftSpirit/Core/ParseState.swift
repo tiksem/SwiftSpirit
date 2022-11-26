@@ -7,6 +7,10 @@ import Foundation
 public struct ParseState {
     let seek: String.Index
     let code: ParseCode
+
+    func toError() -> ParseError {
+        code.toError(seek: seek)
+    }
 }
 
 extension ParseState : Equatable {

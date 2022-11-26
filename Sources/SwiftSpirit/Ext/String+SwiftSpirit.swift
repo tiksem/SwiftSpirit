@@ -14,6 +14,15 @@ public extension String {
         rule.parse(seek: startIndex, string: Data(string: self))
     }
 
+    func parseOrThrow<T>(rule: BaseRule<T>) throws -> String.Index {
+        let result = rule.parse(seek: startIndex, string: Data(string: self))
+        if result.code == .complete {
+            return result.seek
+        }
+
+        throw result.toError()
+    }
+
     func parseWithResult<T>(rule: BaseRule<T>) -> ParseResult<T> {
         rule.parseWithResult(seek: startIndex, string: Data(string: self))
     }

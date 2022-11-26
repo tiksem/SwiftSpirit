@@ -5,7 +5,6 @@
 import Foundation
 
 enum ParseError : Error {
-    case complete(seek: String.Index)
     case invalidInt(seek: String.Index)
     case intOverflow(seek: String.Index)
     case uintOverflow(seek: String.Index)
