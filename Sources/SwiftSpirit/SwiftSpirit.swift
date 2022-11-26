@@ -3,5 +3,9 @@ public struct SwiftSpirit {
 
     public init() {
         print(text)
+
+        let flags = "🇦🇺🇦🇽"
+
+        print(flags.utf8.count)
     }
 }

@@ -13,8 +13,12 @@ class ExactStringRule : StringRule {
         self.string = string
     }
 
-    override func parse(seek: Swift.String.Index, string: Data) -> ParseState {
+    override func parse(seek: String.Index, string: Data) -> ParseState {
         let s = string.original
+        guard seek.samePosition(in: s) != nil else {
+            return ParseState(seek: seek, code: .exactStringNoMatch)
+        }
+
         guard let endIndex = s.index(seek, offsetBy: self.string.count, limitedBy: s.endIndex) else {
             return ParseState(seek: seek, code: .exactStringNoMatch)
         }
@@ -26,8 +30,12 @@ class ExactStringRule : StringRule {
         return ParseState(seek: endIndex, code: .complete)
     }
 
-    override func parseWithResult(seek: Swift.String.Index, string: Data) -> ParseResult<T> {
+    override func parseWithResult(seek: String.Index, string: Data) -> ParseResult<T> {
         let s = string.original
+        guard seek.samePosition(in: s) != nil else {
+            return ParseResult(seek: seek, code: .exactStringNoMatch)
+        }
+
         guard let endIndex = s.index(seek, offsetBy: self.string.count, limitedBy: s.endIndex) else {
             return ParseResult(seek: seek, code: .exactStringNoMatch)
         }

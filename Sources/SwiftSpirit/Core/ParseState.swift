@@ -8,3 +8,9 @@ public struct ParseState {
     let seek: String.Index
     let code: ParseCode
 }
+
+extension ParseState : Equatable {
+    public static func ==(lhs: ParseState, rhs: ParseState) -> Bool {
+        lhs.seek == rhs.seek && lhs.code == rhs.code
+    }
+}
