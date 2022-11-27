@@ -4,12 +4,12 @@
 
 import Foundation
 
-class StringRule : BaseRule<String> {
-    override func parse(seek: String.Index, string: Data) -> ParseState {
+class StringRule : Rule<String> {
+    override func parse(seek: String.Index, string: String) -> ParseState {
         ParseState(seek: seek, code: .invalidRule)
     }
 
-    override func parseWithResult(seek: String.Index, string: Data) -> ParseResult<String> {
+    override func parseWithResult(seek: String.Index, string: String) -> ParseResult<String> {
         ParseResult(seek: seek, code: .invalidRule)
     }
 }

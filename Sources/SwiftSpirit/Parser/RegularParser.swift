@@ -5,13 +5,13 @@
 import Foundation
 
 class RegularParser<T> : BaseParser<T> {
-    private let originalRule: BaseRule<T>
+    private let originalRule: Rule<T>
 
-    init(originalRule: BaseRule<T>) {
+    init(originalRule: Rule<T>) {
         self.originalRule = originalRule
     }
 
-    override func getRule() -> BaseRule<T> {
+    override func getRule(string: String) -> Rule<T> {
         originalRule
     }
 }

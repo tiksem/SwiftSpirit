@@ -4,17 +4,17 @@
 
 import Foundation
 
-class NoRule<T> : BaseRule<UnicodeScalar> {
-    private let rule: BaseRule<T>
+class NoRule<T> : Rule<UnicodeScalar> {
+    private let rule: Rule<T>
 
-    init(rule: BaseRule<T>, name: String? = nil) {
+    init(rule: Rule<T>, name: String? = nil) {
         self.rule = rule
         #if DEBUG
-        super.init(name: name)
+        super.init(name: name ?? "!\(rule.wrappedName)")
         #endif
     }
 
-    override func parse(seek: String.Index, string: Data) -> ParseState {
+    override func parse(seek: String.Index, string: String) -> ParseState {
         if rule.hasMatch(seek: seek, string: string) {
             return ParseState(seek: seek, code: .noFailed)
         }
@@ -23,13 +23,13 @@ class NoRule<T> : BaseRule<UnicodeScalar> {
         if seek == string.endIndex {
             resultSeek = seek
         } else {
-            resultSeek = string.scalars.index(after: seek)
+            resultSeek = string.unicodeScalars.index(after: seek)
         }
 
         return ParseState(seek: resultSeek, code: .complete)
     }
 
-    override func parseWithResult(seek: String.Index, string: Data) -> ParseResult<UnicodeScalar> {
+    override func parseWithResult(seek: String.Index, string: String) -> ParseResult<UnicodeScalar> {
         if rule.hasMatch(seek: seek, string: string) {
             return ParseResult(seek: seek, code: .noFailed)
         }
@@ -38,15 +38,19 @@ class NoRule<T> : BaseRule<UnicodeScalar> {
             return ParseResult(seek: seek, code: .complete, result: UnicodeScalar(0))
         }
 
-        return ParseResult(seek: string.scalars.index(after: seek), code: .complete, result: string.scalars[seek])
+        return ParseResult(seek: string.unicodeScalars.index(after: seek), code: .complete, result: string.unicodeScalars[seek])
     }
 
-    func hasMatch(seek: Swift.String.Index, string: Data) -> Bool {
+    func hasMatch(seek: Swift.String.Index, string: String) -> Bool {
         !rule.hasMatch(seek: seek, string: string)
     }
 
     override func name(name: String) -> NoRule<T> {
         NoRule(rule: rule, name: name)
+    }
+
+    override func clone() -> NoRule<T> {
+        NoRule(rule: rule.clone())
     }
 
     #if DEBUG
@@ -57,6 +61,6 @@ class NoRule<T> : BaseRule<UnicodeScalar> {
     #endif
 }
 
-prefix func !<T>(a: BaseRule<T>) -> NoRule<T> {
+prefix func !<T>(a: Rule<T>) -> NoRule<T> {
     NoRule(rule: a)
 }

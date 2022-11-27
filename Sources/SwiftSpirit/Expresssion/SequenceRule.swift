@@ -4,11 +4,11 @@
 
 import Foundation
 
-class SequenceRule<A, B> : BaseRule<Substring> {
-    private let a: BaseRule<A>
-    private let b: BaseRule<B>
+class SequenceRule<A, B> : Rule<Substring> {
+    private let a: Rule<A>
+    private let b: Rule<B>
 
-    init(_ a: BaseRule<A>, _ b: BaseRule<B>, name: String? = nil) {
+    init(_ a: Rule<A>, _ b: Rule<B>, name: String? = nil) {
         self.a = a
         self.b = b
         #if DEBUG
@@ -16,7 +16,7 @@ class SequenceRule<A, B> : BaseRule<Substring> {
         #endif
     }
 
-    override func parse(seek: String.Index, string: Data) -> ParseState {
+    override func parse(seek: String.Index, string: String) -> ParseState {
         let aRes = a.parse(seek: seek, string: string)
         guard aRes.code == .complete else {
             return aRes
@@ -25,7 +25,7 @@ class SequenceRule<A, B> : BaseRule<Substring> {
         return b.parse(seek: aRes.seek, string: string)
     }
 
-    override func parseWithResult(seek: String.Index, string: Data) -> ParseResult<Substring> {
+    override func parseWithResult(seek: String.Index, string: String) -> ParseResult<Substring> {
         let aRes = a.parse(seek: seek, string: string)
         guard aRes.code == .complete else {
             return ParseResult(seek: aRes.seek, code: aRes.code)
@@ -33,13 +33,13 @@ class SequenceRule<A, B> : BaseRule<Substring> {
 
         let bRes = b.parse(seek: aRes.seek, string: string)
         if bRes.code == .complete {
-            return ParseResult(state: bRes, result: string.original[seek..<bRes.seek])
+            return ParseResult(state: bRes, result: string[seek..<bRes.seek])
         } else {
             return ParseResult(state: bRes, result: nil)
         }
     }
 
-    func hasMatch(seek: String.Index, string: Data) -> Bool {
+    func hasMatch(seek: String.Index, string: String) -> Bool {
         let aRes = a.parse(seek: seek, string: string)
         guard aRes.code == .complete else {
             return false
@@ -50,6 +50,10 @@ class SequenceRule<A, B> : BaseRule<Substring> {
 
     override func clone() -> SequenceRule<A, B> {
         SequenceRule(a.clone(), b.clone(), name: name)
+    }
+
+    override func name(name: String) -> SequenceRule {
+        SequenceRule(a, b, name: name)
     }
 
     #if DEBUG
@@ -64,6 +68,6 @@ class SequenceRule<A, B> : BaseRule<Substring> {
     #endif
 }
 
-func +<A, B>(a: BaseRule<A>, b: BaseRule<B>) -> SequenceRule<A, B> {
+func +<A, B>(a: Rule<A>, b: Rule<B>) -> SequenceRule<A, B> {
     SequenceRule<A, B>(a, b)
 }

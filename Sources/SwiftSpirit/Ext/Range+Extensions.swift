@@ -28,6 +28,22 @@ extension PartialRangeThrough where Bound : SignedInteger {
     }
 }
 
+extension ClosedRange where Bound : SignedInteger {
+    func getNameToken() -> String {
+        if lowerBound == 0 {
+            if upperBound == Int.max {
+                return "0..."
+            } else {
+                return "...\(upperBound)"
+            }
+        } else if upperBound == Int.max {
+            return "\(lowerBound)..."
+        } else {
+            return description
+        }
+    }
+}
+
 extension Array where Element == ClosedRange<UnicodeScalar> {
     func containsChar(_ ch: UnicodeScalar) -> Bool {
         self.contains(where: { $0.contains(ch) })

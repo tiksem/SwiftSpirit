@@ -20,6 +20,7 @@ let float = FloatRule<Float>(name: "float")
 let double = FloatRule<Double>(name: "double")
 
 let char = AnyCharRule()
+let character = AnyCharacterRule()
 
 func char(_ ch: UnicodeScalar) -> CharPredicateRule {
     let data = CharPredicateData(matchChar: ch, inverted: false)
@@ -44,6 +45,10 @@ func char(chars: [UnicodeScalar] = [], ranges: [ClosedRange<UnicodeScalar>] = []
 func char(_ string: String) -> CharPredicateRule {
     let data = CharPredicateData(inString: string, inverted: false)
     return CharPredicateRule(predicate: data.toPredicate(), data: data)
+}
+
+func charIf(_ predicate: @escaping (UnicodeScalar) -> Bool) -> CharPredicateRule {
+    CharPredicateRule(predicate: predicate, data: nil)
 }
 
 extension CharacterSet {

@@ -17,7 +17,9 @@ enum ParseError : Error {
     case exactStringNoMatch(seek: String.Index)
     case predicateStringNotEnoughData(seek: String.Index)
     case oneOfStringNoMatch(seek: String.Index)
+    case expectationFailed(seek: String.Index)
     case noFailed(seek: String.Index)
     case eof(seek: String.Index)
-    case invalidRule(seek: String.Index);
+    case invalidRule(seek: String.Index)
+    case invalidUnicodeScalarsSeek(seek: String.Index);
 }

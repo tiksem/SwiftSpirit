@@ -4,7 +4,7 @@
 
 import Foundation
 
-class CharPredicateRule : BaseRule<UnicodeScalar> {
+class CharPredicateRule : Rule<UnicodeScalar> {
     let predicate: (UnicodeScalar) -> Bool
     let data: CharPredicateData?
 
@@ -12,34 +12,38 @@ class CharPredicateRule : BaseRule<UnicodeScalar> {
         self.predicate = predicate
         self.data = data
         #if DEBUG
-        super.init(name: name ?? "charPredicate")
+        super.init(name: name ?? data?.getName() ?? "charIf")
         #endif
     }
 
-    override func parse(seek: String.Index, string: Data) -> ParseState {
+    override func parse(seek: String.Index, string: String) -> ParseState {
         guard seek != string.endIndex else {
             return ParseState(seek: seek, code: .eof)
         }
 
-        let ch = string.scalars[seek]
+        let ch = string.unicodeScalars[seek]
         if (predicate(ch)) {
-            return ParseState(seek: string.scalars.index(after: seek), code: .complete)
+            return ParseState(seek: string.unicodeScalars.index(after: seek), code: .complete)
         } else {
             return ParseState(seek: seek, code: .charPredicateFailed)
         }
     }
 
-    override func parseWithResult(seek: String.Index, string: Data) -> ParseResult<T> {
+    override func parseWithResult(seek: String.Index, string: String) -> ParseResult<T> {
         guard seek != string.endIndex else {
             return ParseResult(seek: seek, code: .eof)
         }
 
-        let ch = string.scalars[seek]
+        let ch = string.unicodeScalars[seek]
         if (predicate(ch)) {
-            return ParseResult(seek: string.scalars.index(after: seek), code: .complete, result: ch)
+            return ParseResult(seek: string.unicodeScalars.index(after: seek), code: .complete, result: ch)
         } else {
             return ParseResult(seek: seek, code: .charPredicateFailed)
         }
+    }
+
+    override func name(name: String) -> CharPredicateRule {
+        CharPredicateRule(predicate: predicate, data: data, name: name)
     }
 }
 

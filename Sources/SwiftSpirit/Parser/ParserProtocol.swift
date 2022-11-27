@@ -11,6 +11,7 @@ protocol ParserProtocol : AnyObject {
     func parse(string: String) -> ParseState
     func parseWithResult(string: String) -> ParseResult<T>
     func tryParse(string: String) -> String.Index?
+    func tryParseValue(string: String) -> T?
     func parseValueOrThrow(string: String) throws -> T
     func matchesAtBeginning(string: String) -> Bool
 

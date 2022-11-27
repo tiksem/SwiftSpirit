@@ -4,20 +4,29 @@
 
 import Foundation
 
-class RepeatRule<T> : BaseRule<[T]> {
-    private let repeated: BaseRule<T>
+class RepeatRule<T> : Rule<[T]> {
+    private let repeated: Rule<T>
     private let range: ClosedRange<Int>
 
-    init(repeated: BaseRule<T>, range: ClosedRange<Int>, name: String? = nil) {
+    init(repeated: Rule<T>, range: ClosedRange<Int>, name: String? = nil) {
         assert(range.lowerBound >= 0)
         self.range = range
         self.repeated = repeated
         #if DEBUG
-        super.init(name: name ?? "\(repeated.wrappedName).repeat(\(range))")
+        let fallbackName: String
+        if range == 0...Int.max {
+            fallbackName = "\(repeated.wrappedName)*"
+        } else if range == 1...Int.max {
+            fallbackName = "\(repeated.wrappedName)+"
+        } else {
+            fallbackName = "\(repeated.wrappedName).repeat(\(range.getNameToken()))"
+        }
+
+        super.init(name: name ?? fallbackName)
         #endif
     }
 
-    override func parse(seek: String.Index, string: Data) -> ParseState {
+    override func parse(seek: String.Index, string: String) -> ParseState {
         var i = seek
         for _ in 0..<range.lowerBound {
             let r = repeated.parse(seek: i, string: string)
@@ -39,7 +48,7 @@ class RepeatRule<T> : BaseRule<[T]> {
         return ParseState(seek: i, code: .complete)
     }
 
-    override func parseWithResult(seek: String.Index, string: Data) -> ParseResult<[T]> {
+    override func parseWithResult(seek: String.Index, string: String) -> ParseResult<[T]> {
         var i = seek
         var result = [T]()
         if result.capacity < range.lowerBound {
@@ -73,7 +82,7 @@ class RepeatRule<T> : BaseRule<[T]> {
         return ParseResult(seek: i, code: .complete, result: result)
     }
 
-    func hasMatch(seek: String.Index, string: Data) -> Bool {
+    func hasMatch(seek: String.Index, string: String) -> Bool {
         guard range.lowerBound > 0 else { return true }
 
         var i = seek
@@ -88,6 +97,14 @@ class RepeatRule<T> : BaseRule<[T]> {
         return repeated.hasMatch(seek: i, string: string)
     }
 
+    override func clone() -> RepeatRule<T> {
+        RepeatRule(repeated: repeated.clone(), range: range)
+    }
+
+    override func name(name: String) -> Rule<[T]> {
+        RepeatRule(repeated: repeated, range: range, name: name)
+    }
+
     #if DEBUG
     override func debug(context: DebugContext) -> DebugRule<[T]> {
         let base = RepeatRule(repeated: repeated.debug(context: context), range: range, name: name)
@@ -96,7 +113,7 @@ class RepeatRule<T> : BaseRule<[T]> {
     #endif
 }
 
-extension BaseRule {
+extension Rule {
     func `repeat`(range: Range<Int>) -> RepeatRule<T> {
         RepeatRule(repeated: self, range: range.toClosed())
     }
@@ -125,10 +142,10 @@ extension BaseRule {
 postfix operator +
 postfix operator *
 
-postfix func +<T>(rule: BaseRule<T>) -> RepeatRule<T> {
+postfix func +<T>(rule: Rule<T>) -> RepeatRule<T> {
     RepeatRule(repeated: rule, range: 1...Int.max)
 }
 
-postfix func *<T>(rule: BaseRule<T>) -> RepeatRule<T> {
+postfix func *<T>(rule: Rule<T>) -> RepeatRule<T> {
     RepeatRule(repeated: rule, range: 0...Int.max)
 }

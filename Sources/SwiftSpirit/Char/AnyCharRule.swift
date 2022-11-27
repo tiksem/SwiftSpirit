@@ -4,30 +4,32 @@
 
 import Foundation
 
-class AnyCharRule : BaseRule<UnicodeScalar> {
+class AnyCharRule : Rule<UnicodeScalar> {
     override init(name: String? = nil) {
         #if DEBUG
         super.init(name: name ?? "char")
         #endif
     }
 
-    override func parse(seek: String.Index, string: Data) -> ParseState {
+    override func parse(seek: String.Index, string: String) -> ParseState {
         guard seek != string.endIndex else {
             return ParseState(seek: seek, code: .eof)
         }
 
-        return ParseState(seek: string.scalars.index(after: seek), code: .complete)
+        return ParseState(seek: string.unicodeScalars.index(after: seek), code: .complete)
     }
 
-    override func parseWithResult(seek: String.Index, string: Data) -> ParseResult<T> {
+    override func parseWithResult(seek: String.Index, string: String) -> ParseResult<T> {
         guard seek != string.endIndex else {
             return ParseResult(seek: seek, code: .eof)
         }
 
-        return ParseResult(seek: string.scalars.index(after: seek), code: .complete, result: string.scalars[seek])
+        return ParseResult(
+                seek: string.unicodeScalars.index(after: seek), code: .complete,
+                result: string.unicodeScalars[seek])
     }
 
-    func hasMatch(seek: String.Index, string: Data) -> Bool {
+    func hasMatch(seek: String.Index, string: String) -> Bool {
         seek != string.endIndex
     }
 

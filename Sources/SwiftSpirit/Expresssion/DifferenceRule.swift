@@ -4,11 +4,11 @@
 
 import Foundation
 
-class DifferenceRule<Main, Diff> : BaseRule<Main> {
-    private let main: BaseRule<Main>
-    private let diff: BaseRule<Diff>
+class DifferenceRule<Main, Diff> : Rule<Main> {
+    private let main: Rule<Main>
+    private let diff: Rule<Diff>
 
-    init(main: BaseRule<Main>, diff: BaseRule<Diff>, name: String? = nil) {
+    init(main: Rule<Main>, diff: Rule<Diff>, name: String? = nil) {
         self.main = main
         self.diff = diff
         #if DEBUG
@@ -16,7 +16,7 @@ class DifferenceRule<Main, Diff> : BaseRule<Main> {
         #endif
     }
 
-    override func parse(seek: String.Index, string: Data) -> ParseState {
+    override func parse(seek: String.Index, string: String) -> ParseState {
         let mainRes = main.parse(seek: seek, string: string)
         guard mainRes.code == .complete else {
             return mainRes
@@ -29,7 +29,7 @@ class DifferenceRule<Main, Diff> : BaseRule<Main> {
         return mainRes
     }
 
-    override func parseWithResult(seek: String.Index, string: Data) -> ParseResult<T> {
+    override func parseWithResult(seek: String.Index, string: String) -> ParseResult<T> {
         let mainRes = main.parseWithResult(seek: seek, string: string)
         guard mainRes.state.code == .complete else {
             return mainRes
@@ -42,7 +42,7 @@ class DifferenceRule<Main, Diff> : BaseRule<Main> {
         return mainRes
     }
 
-    func hasMatch(seek: String.Index, string: Data) -> Bool {
+    func hasMatch(seek: String.Index, string: String) -> Bool {
         main.hasMatch(seek: seek, string: string) && !diff.hasMatch(seek: seek, string: string)
     }
 
@@ -69,6 +69,6 @@ class DifferenceRule<Main, Diff> : BaseRule<Main> {
     #endif
 }
 
-func -<A, B> (a: BaseRule<A>, b: BaseRule<B>) -> DifferenceRule<A, B> {
+func -<A, B> (a: Rule<A>, b: Rule<B>) -> DifferenceRule<A, B> {
     DifferenceRule<A, B>(main: a, diff: b)
 }

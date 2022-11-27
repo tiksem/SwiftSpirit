@@ -4,22 +4,22 @@
 
 import Foundation
 
-class QuotedRule<T, L, R> : BaseRule<T> {
-    private let rule: BaseRule<T>
-    private let l: BaseRule<L>
-    private let r: BaseRule<R>
+class QuotedRule<T, L, R> : Rule<T> {
+    private let rule: Rule<T>
+    private let l: Rule<L>
+    private let r: Rule<R>
 
-    init(rule: BaseRule<T>, l: BaseRule<L>, r: BaseRule<R>, name: String? = nil) {
+    init(rule: Rule<T>, l: Rule<L>, r: Rule<R>, name: String? = nil) {
         self.rule = rule
         self.l = l
         self.r = r
         #if DEBUG
-        let quotedArgs = l.name == r.name ? l.name : "\(l.name), \(r.name)"
+        let quotedArgs = l.name == r.name ? l.name : "\(l.name),\(r.name)"
         super.init(name: name ?? "\(rule.wrappedName).quoted(\(quotedArgs))")
         #endif
     }
 
-    override func parse(seek: String.Index, string: Data) -> ParseState {
+    override func parse(seek: String.Index, string: String) -> ParseState {
         let lRes = l.parse(seek: seek, string: string)
         if lRes.code != .complete {
             return lRes
@@ -33,7 +33,7 @@ class QuotedRule<T, L, R> : BaseRule<T> {
         return r.parse(seek: ruleRes.seek, string: string)
     }
 
-    override func parseWithResult(seek: String.Index, string: Data) -> ParseResult<T> {
+    override func parseWithResult(seek: String.Index, string: String) -> ParseResult<T> {
         let lRes = l.parse(seek: seek, string: string)
         if lRes.code != .complete {
             return ParseResult(state: lRes, result: nil)
@@ -52,7 +52,7 @@ class QuotedRule<T, L, R> : BaseRule<T> {
         }
     }
 
-    func hasMatch(seek: String.Index, string: Data) -> Bool {
+    func hasMatch(seek: String.Index, string: String) -> Bool {
         let lRes = l.parse(seek: seek, string: string)
         if lRes.code != .complete {
             return false
@@ -66,6 +66,14 @@ class QuotedRule<T, L, R> : BaseRule<T> {
         return r.hasMatch(seek: ruleRes.seek, string: string)
     }
 
+    override func clone() -> QuotedRule<T, L, R> {
+        QuotedRule(rule: rule.clone(), l: l.clone(), r: r.clone(), name: name)
+    }
+
+    override func name(name: String) -> QuotedRule<T, L, R> {
+        QuotedRule(rule: rule, l: l, r: r, name: name)
+    }
+
     #if DEBUG
     override func debug(context: DebugContext) -> DebugRule<T> {
         let base = QuotedRule(rule: rule.debug(context: context),
@@ -75,8 +83,8 @@ class QuotedRule<T, L, R> : BaseRule<T> {
     #endif
 }
 
-extension BaseRule {
-    func quoted<A, B>(_ l: BaseRule<A>, _ r: BaseRule<B>) -> QuotedRule<T, A, B> {
+extension Rule {
+    func quoted<A, B>(_ l: Rule<A>, _ r: Rule<B>) -> QuotedRule<T, A, B> {
         QuotedRule(rule: self, l: l, r: r)
     }
 

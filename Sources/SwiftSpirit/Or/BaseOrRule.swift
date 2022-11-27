@@ -4,11 +4,11 @@
 
 import Foundation
 
-class BaseOrRule<A, B, T> : BaseRule<T> {
-    let a: BaseRule<A>
-    let b: BaseRule<B>
+class BaseOrRule<A, B, T> : Rule<T> {
+    let a: Rule<A>
+    let b: Rule<B>
 
-    init(_ a: BaseRule<A>, _ b: BaseRule<B>, name: String? = nil) {
+    init(_ a: Rule<A>, _ b: Rule<B>, name: String? = nil) {
         self.a = a
         self.b = b
         #if DEBUG
@@ -16,7 +16,7 @@ class BaseOrRule<A, B, T> : BaseRule<T> {
         #endif
     }
 
-    override func parse(seek: String.Index, string: Data) -> ParseState {
+    override func parse(seek: String.Index, string: String) -> ParseState {
         let aRes = a.parse(seek: seek, string: string)
         if aRes.code == .complete {
             return aRes
@@ -25,7 +25,7 @@ class BaseOrRule<A, B, T> : BaseRule<T> {
         return b.parse(seek: seek, string: string)
     }
 
-    override func parseWithResult(seek: String.Index, string: Data) -> ParseResult<T> {
+    override func parseWithResult(seek: String.Index, string: String) -> ParseResult<T> {
         let aRes = a.parseWithResult(seek: seek, string: string)
         if aRes.state.code == .complete {
             return convertAResult(from: aRes)
@@ -35,7 +35,7 @@ class BaseOrRule<A, B, T> : BaseRule<T> {
         return convertBResult(from: bRes)
     }
 
-    func hasMatch(seek: String.Index, string: Data) -> Bool {
+    func hasMatch(seek: String.Index, string: String) -> Bool {
         a.hasMatch(seek: seek, string: string) || b.hasMatch(seek: seek, string: string)
     }
 

@@ -4,14 +4,14 @@
 
 import Foundation
 
-class UIntRule<I> : BaseRule<I> where I : FixedWidthInteger & UnsignedInteger {
+class UIntRule<I> : Rule<I> where I : FixedWidthInteger & UnsignedInteger {
     override init(name: String?) {
         #if DEBUG
         super.init(name: name)
         #endif
     }
 
-    override func parse(seek: String.Index, string: Data) -> ParseState {
+    override func parse(seek: String.Index, string: String) -> ParseState {
         if (seek == string.endIndex) {
             return ParseState(seek: seek, code: .eof)
         }
@@ -54,7 +54,7 @@ class UIntRule<I> : BaseRule<I> where I : FixedWidthInteger & UnsignedInteger {
         return ParseState(seek: i, code: .complete)
     }
 
-    override func parseWithResult(seek: String.Index, string: Data) -> ParseResult<I> {
+    override func parseWithResult(seek: String.Index, string: String) -> ParseResult<I> {
         if (seek == string.endIndex) {
             return ParseResult(seek: seek, code: .eof)
         }

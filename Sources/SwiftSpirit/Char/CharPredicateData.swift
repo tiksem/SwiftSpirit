@@ -177,4 +177,23 @@ struct CharPredicateData {
 
         return CharPredicateData(set: aSet.union(bSet), inverted: false)
     }
+
+    func getName() -> String {
+        let prefix = inverted ? "!" : ""
+        if let char = matchChar {
+            return "\(prefix)char(\(char))"
+        }
+
+        if ranges.isEmpty {
+            return prefix + "charFromSet"
+        }
+
+        let rangesAsString = ranges.map { range in "\(range.lowerBound),\(range.upperBound)" }.joined(separator: ";")
+
+        if set.isEmpty {
+            return prefix + "char(\(rangesAsString))"
+        } else {
+            return prefix + "charFromSet(\(rangesAsString))"
+        }
+    }
 }

@@ -21,6 +21,6 @@ class OrAnyRule<A, B> : BaseOrRule<A, B, Any> {
     }
 }
 
-func |<A, B> (a: BaseRule<A>, b: BaseRule<B>) -> OrAnyRule<A, B> {
+func |<A, B> (a: Rule<A>, b: Rule<B>) -> OrAnyRule<A, B> {
     OrAnyRule<A, B>(a, b)
 }

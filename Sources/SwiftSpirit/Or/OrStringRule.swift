@@ -55,10 +55,10 @@ class OrASubstringBStringRule : BaseOrRule<Substring, String, String> {
     }
 }
 
-func |(a: BaseRule<String>, b: BaseRule<Substring>) -> OrAStringBSubstringRule {
+func |(a: Rule<String>, b: Rule<Substring>) -> OrAStringBSubstringRule {
     OrAStringBSubstringRule(a, b)
 }
 
-func |(a: BaseRule<Substring>, b: BaseRule<String>) -> OrASubstringBStringRule {
+func |(a: Rule<Substring>, b: Rule<String>) -> OrASubstringBStringRule {
     OrASubstringBStringRule(a, b)
 }

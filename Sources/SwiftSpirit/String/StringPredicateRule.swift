@@ -8,13 +8,16 @@ class StringPredicateRule : StringRule {
     let predicate: (UnicodeScalar) -> Bool
     let range: ClosedRange<Int>
 
-    init(predicate: @escaping (UnicodeScalar) -> Bool, range: ClosedRange<Int>) {
+    init(predicate: @escaping (UnicodeScalar) -> Bool, range: ClosedRange<Int>, name: String? = nil) {
         self.predicate = predicate
         self.range = range
+        #if DEBUG
+        super.init(name: name ?? "stringIf")
+        #endif
     }
 
-    override func parse(seek: Swift.String.Index, string: Data) -> ParseState {
-        let scalars = string.scalars
+    override func parse(seek: Swift.String.Index, string: String) -> ParseState {
+        let scalars = string.unicodeScalars
         var i = seek.samePosition(in: scalars)!
         for _ in 0..<range.lowerBound {
             if !predicate(scalars[i]) {
@@ -33,12 +36,12 @@ class StringPredicateRule : StringRule {
         return ParseState(seek: i, code: .complete)
     }
 
-    override func parseWithResult(seek: Swift.String.Index, string: Data) -> ParseResult<T> {
+    override func parseWithResult(seek: Swift.String.Index, string: String) -> ParseResult<T> {
         super.parseWithResult(seek: seek, string: string)
     }
 
-    func hasMatch(seek: String.Index, string: Data) -> Bool {
-        let scalars = string.scalars
+    func hasMatch(seek: String.Index, string: String) -> Bool {
+        let scalars = string.unicodeScalars
         var i = seek.samePosition(in: scalars)!
         for _ in 0..<range.lowerBound {
             if !predicate(scalars[i]) {
@@ -48,6 +51,10 @@ class StringPredicateRule : StringRule {
         }
 
         return true
+    }
+
+    override func name(name: String) -> StringPredicateRule {
+        StringPredicateRule(predicate: predicate, range: range, name: name)
     }
 }
 

@@ -4,7 +4,7 @@
 
 import Foundation
 
-public class BaseRule<T> : RuleProtocol {
+public class Rule<T> : RuleProtocol {
     #if DEBUG
     let name: String
     #else
@@ -18,36 +18,40 @@ public class BaseRule<T> : RuleProtocol {
     }
 
     #if DEBUG
-    dynamic func parse(seek: String.Index, string: Data) -> ParseState {
+    dynamic func parse(seek: String.Index, string: String) -> ParseState {
         fatalError("Not implemented")
     }
 
-    dynamic func parseWithResult(seek: String.Index, string: Data) -> ParseResult<T> {
+    dynamic func parseWithResult(seek: String.Index, string: String) -> ParseResult<T> {
         fatalError("Not implemented")
     }
     #else
-    func parse(seek: String.Index, string: Data) -> ParseState {
+    func parse(seek: String.Index, string: String) -> ParseState {
         fatalError("Not implemented")
     }
 
-    func parseWithResult(seek: String.Index, string: Data) -> ParseResult<T> {
+    func parseWithResult(seek: String.Index, string: String) -> ParseResult<T> {
         fatalError("Not implemented")
     }
     #endif
 
     func compile() -> BaseParser<T> {
+        #if DEBUG
+            return DebugParser(originalRule: self)
+        #else
         if isThreadSafe() {
             return RegularParser(originalRule: self)
         } else {
             return ThreadSafeParser(originalRule: self)
         }
+        #endif
     }
 
-    func clone() -> BaseRule<T> {
+    func clone() -> Rule<T> {
         self
     }
 
-    func name(name: String) -> BaseRule<T> {
+    func name(name: String) -> Rule<T> {
         self
     }
 
@@ -66,12 +70,11 @@ public class BaseRule<T> : RuleProtocol {
     #endif
 }
 
-extension BaseRule {
+extension Rule {
     @inline(__always) func findFirstSuccessfulRange(string: String) -> Range<String.Index>? {
-        let data = Data(string: string)
         var seek = string.startIndex
         repeat {
-            let result = parse(seek: seek, string: data)
+            let result = parse(seek: seek, string: string)
             if result.code == .complete {
                 return seek..<result.seek
             }
@@ -93,10 +96,9 @@ extension BaseRule {
     }
 
     @inline(__always) func findFirstSuccessfulResult(string: String) -> SearchResult? {
-        let data = Data(string: string)
         var seek = string.startIndex
         repeat {
-            let result = parseWithResult(seek: seek, string: data)
+            let result = parseWithResult(seek: seek, string: string)
             if result.state.code == .complete {
                 return SearchResult(range: seek..<result.state.seek, value: result.result)
             }
@@ -113,11 +115,10 @@ extension BaseRule {
     }
 
     @inline(__always) func findAllSuccessfulRanges(string: String) -> [Range<String.Index>] {
-        let data = Data(string: string)
         var seek = string.startIndex
         var list = [Range<String.Index>]()
         repeat {
-            let result = parse(seek: seek, string: data)
+            let result = parse(seek: seek, string: string)
             if result.code == .complete {
                 list.append(seek..<result.seek)
             }
@@ -136,10 +137,9 @@ extension BaseRule {
     @inline(__always) func findAllSuccessfulResults(
             string: String, callback: (_ range: Range<String.Index>, _ value: T?) -> Void
     ) {
-        let data = Data(string: string)
         var seek = string.startIndex
         repeat {
-            let result = parseWithResult(seek: seek, string: data)
+            let result = parseWithResult(seek: seek, string: string)
             if result.state.code == .complete {
                 callback(seek..<result.state.seek, result.result)
             }

@@ -11,11 +11,11 @@ public struct Seek {
     let stringPosition: Int
     let index: String.Index
 
-    init(index: String.Index, data: Data) {
-        utf8Position = data.utf8.distance(from: data.startIndex, to: index)
-        utf16Position = data.original.utf16.distance(from: data.startIndex, to: index)
-        scalarsPosition = data.scalars.distance(from: data.startIndex, to: index)
-        stringPosition = data.original.distance(from: data.startIndex, to: index)
+    init(index: String.Index, string: String) {
+        utf8Position = string.utf8.distance(from: string.startIndex, to: index)
+        utf16Position = string.utf16.distance(from: string.startIndex, to: index)
+        scalarsPosition = string.unicodeScalars.distance(from: string.startIndex, to: index)
+        stringPosition = string.distance(from: string.startIndex, to: index)
         self.index = index
     }
 }
@@ -37,16 +37,16 @@ open class DebugTreeNode {
 }
 
 class DebugContext {
-    private let data: Data
+    private let string: String
     private var root: DebugTreeNode? = nil
     private var current: DebugTreeNode? = nil
 
-    init(data: Data) {
-        self.data = data
+    init(string: String) {
+        self.string = string
     }
 
     func parseStarted(name: String, seek: String.Index) {
-        let startSeek = Seek(index: seek, data: data)
+        let startSeek = Seek(index: seek, string: string)
         let newNode = DebugTreeNode(name: name, startSeek: startSeek, endSeek: nil)
         if let node = current {
             node.children.append(newNode)
@@ -58,7 +58,7 @@ class DebugContext {
         }
     }
     func parseFinished(endSeek: String.Index, code: ParseCode, result: Any?) {
-        current!.endSeek = Seek(index: endSeek, data: data)
+        current!.endSeek = Seek(index: endSeek, string: string)
         current!.parseCode = code
         current!.result = result
 

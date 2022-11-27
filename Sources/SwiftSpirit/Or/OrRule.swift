@@ -21,6 +21,6 @@ class OrRule<T> : BaseOrRule<T, T, T> {
     }
 }
 
-func |<T> (a: BaseRule<T>, b: BaseRule<T>) -> OrRule<T> {
+func |<T> (a: Rule<T>, b: Rule<T>) -> OrRule<T> {
     OrRule<T>(a, b)
 }

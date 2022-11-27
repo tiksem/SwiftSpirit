@@ -9,45 +9,51 @@ class ExactStringRule : StringRule {
 
     let string: String
 
-    init(string: String) {
+    init(string: String, name: String? = nil) {
         self.string = string
+        #if DEBUG
+        super.init(name: name ??
+                "str(\(string.replacingOccurrences(of: "(", with: "`(`").replacingOccurrences(of: ")", with: "`)`"))")
+        #endif
     }
 
-    override func parse(seek: String.Index, string: Data) -> ParseState {
-        let s = string.original
-        guard seek.samePosition(in: s) != nil else {
+    override func parse(seek: String.Index, string: String) -> ParseState {
+        guard seek.samePosition(in: string) != nil else {
             return ParseState(seek: seek, code: .exactStringNoMatch)
         }
 
-        guard let endIndex = s.index(seek, offsetBy: self.string.count, limitedBy: s.endIndex) else {
+        guard let endIndex = string.index(seek, offsetBy: self.string.count, limitedBy: string.endIndex) else {
             return ParseState(seek: seek, code: .exactStringNoMatch)
         }
 
-        guard s[seek..<endIndex] == self.string else {
+        guard string[seek..<endIndex] == self.string else {
             return ParseState(seek: seek, code: .exactStringNoMatch)
         }
 
         return ParseState(seek: endIndex, code: .complete)
     }
 
-    override func parseWithResult(seek: String.Index, string: Data) -> ParseResult<T> {
-        let s = string.original
-        guard seek.samePosition(in: s) != nil else {
+    override func parseWithResult(seek: String.Index, string: String) -> ParseResult<T> {
+        guard seek.samePosition(in: string) != nil else {
             return ParseResult(seek: seek, code: .exactStringNoMatch)
         }
 
-        guard let endIndex = s.index(seek, offsetBy: self.string.count, limitedBy: s.endIndex) else {
+        guard let endIndex = string.index(seek, offsetBy: self.string.count, limitedBy: string.endIndex) else {
             return ParseResult(seek: seek, code: .exactStringNoMatch)
         }
 
-        guard s[seek..<endIndex] == self.string else {
+        guard string[seek..<endIndex] == self.string else {
             return ParseResult(seek: seek, code: .exactStringNoMatch)
         }
 
         return ParseResult(seek: endIndex, code: .complete, result: self.string)
     }
 
-    func hasMatch(seek: String.Index, string: Data) -> Bool {
-        string.original[seek...].starts(with: self.string)
+    func hasMatch(seek: String.Index, string: String) -> Bool {
+        string[seek...].starts(with: self.string)
+    }
+
+    override func name(name: String) -> ExactStringRule {
+        ExactStringRule(string: string, name: name)
     }
 }
