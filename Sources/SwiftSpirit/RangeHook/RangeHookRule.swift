@@ -57,3 +57,9 @@ class RangeHookRule<T> : Rule<T> {
     }
     #endif
 }
+
+extension Rule {
+    func rangeHook(_ hook: RangeHookProtocol) -> RangeHookRule<T> {
+        RangeHookRule(base: self, hook: hook)
+    }
+}

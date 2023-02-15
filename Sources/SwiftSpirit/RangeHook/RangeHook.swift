@@ -4,7 +4,7 @@
 
 import Foundation
 
-public protocol RangeHookProtocol {
+public protocol RangeHookProtocol : AnyObject {
     func submit(range: Range<String.Index>)
     func clear()
 }
