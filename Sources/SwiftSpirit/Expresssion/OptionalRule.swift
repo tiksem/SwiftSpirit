@@ -23,7 +23,7 @@ class OptionalRule<T> : Rule<T> {
         }
     }
 
-    override func parseWithResult(seek: Swift.String.Index, string: String) -> ParseResult<T> {
+    override func parseWithResult(seek: String.Index, string: String) -> ParseResult<T> {
         let res = rule.parseWithResult(seek: seek, string: string)
         if res.state.code == .complete {
             return res
@@ -32,7 +32,7 @@ class OptionalRule<T> : Rule<T> {
         }
     }
 
-    func hasMatch(seek: Swift.String.Index, string: String) -> Bool {
+    func hasMatch(seek: String.Index, string: String) -> Bool {
         true
     }
 }

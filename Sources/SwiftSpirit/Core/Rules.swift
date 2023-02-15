@@ -18,6 +18,9 @@ let uint64 = UIntRule<UInt64>(name: "uint64")
 
 let float = FloatRule<Float>(name: "float")
 let double = FloatRule<Double>(name: "double")
+let bigint = BigIntRule()
+let biguint = BigUIntRule()
+let decimal = DecimalRule()
 
 let char = AnyCharRule()
 let character = AnyCharacterRule()

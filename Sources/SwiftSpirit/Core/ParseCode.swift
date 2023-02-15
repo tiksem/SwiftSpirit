@@ -10,6 +10,7 @@ public enum ParseCode {
          intOverflow,
          uintOverflow,
          invalidFloat,
+         decimalOverflow,
          charPredicateFailed,
          numberStartedFromZero,
          diffFailed,
@@ -36,6 +37,8 @@ public enum ParseCode {
             return .uintOverflow(seek: seek)
         case .invalidFloat:
             return .invalidFloat(seek: seek)
+        case .decimalOverflow:
+            return .decimalOverflow(seek: seek)
         case .charPredicateFailed:
             return .charPredicateFailed(seek: seek)
         case .numberStartedFromZero:

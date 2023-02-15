@@ -18,3 +18,9 @@ public struct ParseResult<T> {
         self.result = result
     }
 }
+
+extension ParseResult : Equatable where T : Equatable {
+    public static func ==(lhs: ParseResult<T>, rhs: ParseResult<T>) -> Bool {
+        lhs.state == rhs.state && lhs.result == rhs.result
+    }
+}

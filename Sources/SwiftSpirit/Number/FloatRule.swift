@@ -4,6 +4,186 @@
 
 import Foundation
 
+func parseFloat(seek: String.Index, string: String) -> ParseState {
+    if seek == string.endIndex {
+        return ParseState(seek: seek, code: .eof)
+    }
+
+    // Skip integer part
+    let s = string.utf8
+    var i = seek.samePosition(in: s)!
+    let c = s[i]
+    var noMoreDots = false
+    switch c {
+    case ASCII.plus, ASCII.minus, ASCII.dot:
+        i = s.index(after: i)
+        if i == s.endIndex {
+            return ParseState(seek: seek, code: .invalidFloat)
+        }
+
+        noMoreDots = c == ASCII.dot
+        if !noMoreDots && s[i] == ASCII.dot {
+            i = s.index(after: i)
+            if (i == s.endIndex) {
+                return ParseState(seek: seek, code: .invalidFloat)
+            }
+            noMoreDots = true
+        }
+
+        if s[i].isDigit() {
+            i = s.index(after: i)
+            while i != s.endIndex && s[i].isDigit() {
+                i = s.index(after: i)
+            }
+        } else {
+            return ParseState(seek: seek, code: .invalidFloat)
+        }
+    case ASCII.digits:
+        i = s.index(after: i)
+        while i != s.endIndex && s[i].isDigit() {
+            i = s.index(after: i)
+        }
+    default:
+        return ParseState(seek: seek, code: .invalidFloat)
+    }
+
+
+    if (i == s.endIndex) {
+        return ParseState(seek: i, code: .complete)
+    }
+
+    switch s[i] {
+    case ASCII.dot:
+        if noMoreDots {
+            if i == seek {
+                return ParseState(seek: seek, code: .invalidFloat)
+            } else {
+                return ParseState(seek: i, code: .complete)
+            }
+        }
+
+        i = s.index(after: i)
+        while i != s.endIndex && s[i].isDigit() {
+            i = s.index(after: i)
+        }
+
+        let saveI = i
+        if i != s.endIndex {
+            let v = s[i]
+            i = s.index(after: i)
+            switch v {
+            case ASCII.e, ASCII.E:
+                if i != s.endIndex {
+                    let c2 = s[i]
+                    switch c2 {
+                    case ASCII.plus, ASCII.minus:
+                        i = s.index(after: i)
+                        if (i != s.endIndex && s[i].isDigit()) {
+                            i = s.index(after: i)
+                            while i != s.endIndex && s[i].isDigit() {
+                                i = s.index(after: i)
+                            }
+
+                            return ParseState(seek: i, code: .complete)
+                        } else {
+                            return ParseState(seek: s.index(i, offsetBy: -2), code: .complete)
+                        }
+                    default:
+                        if s[i].isDigit() {
+                            i = s.index(after: i)
+                            while i != s.endIndex && s[i].isDigit() {
+                                i = s.index(after: i)
+                            }
+
+                            return ParseState(seek: i, code: .complete)
+                        } else {
+                            return ParseState(seek: s.index(before: i), code: .complete)
+                        }
+                    }
+                } else {
+                    return ParseState(seek: saveI, code: .complete)
+                }
+            default:
+                i = s.index(before: i)
+                return ParseState(seek: i, code: .complete)
+            }
+        } else {
+            return ParseState(seek: saveI, code: .complete)
+        }
+    case ASCII.E, ASCII.e:
+        let saveI = i
+        i = s.index(after: i)
+
+        if i != s.endIndex {
+            if s[i] == ASCII.minus {
+                i = s.index(after: i)
+                if (i != s.endIndex && s[i].isDigit()) {
+                    i = s.index(after: i)
+                    while i != s.endIndex && s[i].isDigit() {
+                        i = s.index(after: i)
+                    }
+
+                    return ParseState(seek: i, code: .complete)
+                } else {
+                    return ParseState(seek: s.index(i, offsetBy: -2), code: .complete)
+                }
+            } else {
+                if (s[i].isDigit()) {
+                    i = s.index(after: i)
+                    while i != s.endIndex && s[i].isDigit() {
+                        i = s.index(after: i)
+                    }
+
+                    return ParseState(seek: i, code: .complete)
+                } else {
+                    return ParseState(seek: s.index(before: i), code: .complete)
+                }
+            }
+        } else {
+            return ParseState(seek: saveI, code: .complete)
+        }
+    default:
+        return ParseState(seek: i, code: .complete)
+    }
+}
+
+func hasFloatMatch(seek: String.Index, string: String) -> Bool {
+    if (seek == string.endIndex) {
+        return false
+    }
+
+    let s = string.utf8
+    let i = seek.samePosition(in: s)!
+    var c = s[i]
+
+    if c.isDigit() {
+        return true
+    }
+    if c == ASCII.dot {
+        let next = s.index(after: i)
+        return next != s.endIndex && s[next].isDigit()
+    }
+
+    if c == ASCII.plus || c == ASCII.minus {
+        let next = s.index(after: i)
+        if next != s.endIndex {
+            c = s[next]
+            if c.isDigit() {
+                return true
+            } else if c == ASCII.dot {
+                let afterNext = s.index(after: next)
+                return afterNext != s.endIndex && s[afterNext].isDigit()
+            } else {
+                return false
+            }
+        } else {
+            return false
+        }
+    }
+
+    return false
+}
+
 class FloatRule<T : BinaryFloatingPoint> : Rule<T> {
     override init(name: String?) {
         #if DEBUG
@@ -12,146 +192,7 @@ class FloatRule<T : BinaryFloatingPoint> : Rule<T> {
     }
 
     override func parse(seek: String.Index, string: String) -> ParseState {
-        if seek == string.endIndex {
-            return ParseState(seek: seek, code: .eof)
-        }
-
-        // Skip integer part
-        let s = string.utf8
-        var i = seek.samePosition(in: s)!
-        let c = s[i]
-        var noMoreDots = false
-        switch c {
-        case ASCII.plus, ASCII.minus, ASCII.dot:
-            i = s.index(after: i)
-            if i == s.endIndex {
-                return ParseState(seek: seek, code: .invalidFloat)
-            }
-
-            noMoreDots = c == ASCII.dot
-            if !noMoreDots && s[i] == ASCII.dot {
-                i = s.index(after: i)
-                if (i == s.endIndex) {
-                    return ParseState(seek: seek, code: .invalidFloat)
-                }
-                noMoreDots = true
-            }
-
-            if s[i].isDigit() {
-                i = s.index(after: i)
-                while i != s.endIndex && s[i].isDigit() {
-                    i = s.index(after: i)
-                }
-            } else {
-                return ParseState(seek: seek, code: .invalidFloat)
-            }
-        case ASCII.digits:
-            i = s.index(after: i)
-            while i != s.endIndex && s[i].isDigit() {
-                i = s.index(after: i)
-            }
-        default:
-            return ParseState(seek: seek, code: .invalidFloat)
-        }
-
-
-        if (i == s.endIndex) {
-            return ParseState(seek: i, code: .complete)
-        }
-
-        switch s[i] {
-        case ASCII.dot:
-            if noMoreDots {
-                if i == seek {
-                    return ParseState(seek: seek, code: .invalidFloat)
-                } else {
-                    return ParseState(seek: i, code: .complete)
-                }
-            }
-
-            i = s.index(after: i)
-            while i != s.endIndex && s[i].isDigit() {
-                i = s.index(after: i)
-            }
-
-            let saveI = i
-            if i != s.endIndex {
-                let v = s[i]
-                i = s.index(after: i)
-                switch v {
-                case ASCII.e, ASCII.E:
-                    if i != s.endIndex {
-                        let c2 = s[i]
-                        switch c2 {
-                        case ASCII.plus, ASCII.minus:
-                            i = s.index(after: i)
-                            if (i != s.endIndex && s[i].isDigit()) {
-                                i = s.index(after: i)
-                                while i != s.endIndex && s[i].isDigit() {
-                                    i = s.index(after: i)
-                                }
-
-                                return ParseState(seek: i, code: .complete)
-                            } else {
-                                return ParseState(seek: s.index(i, offsetBy: -2), code: .complete)
-                            }
-                        default:
-                            if s[i].isDigit() {
-                                i = s.index(after: i)
-                                while i != s.endIndex && s[i].isDigit() {
-                                    i = s.index(after: i)
-                                }
-
-                                return ParseState(seek: i, code: .complete)
-                            } else {
-                                return ParseState(seek: s.index(before: i), code: .complete)
-                            }
-                        }
-                    } else {
-                        return ParseState(seek: saveI, code: .complete)
-                    }
-                default:
-                    i = s.index(before: i)
-                    return ParseState(seek: i, code: .complete)
-                }
-            } else {
-                return ParseState(seek: saveI, code: .complete)
-            }
-        case ASCII.E, ASCII.e:
-            let saveI = i
-            i = s.index(after: i)
-
-            if i != s.endIndex {
-                if s[i] == ASCII.minus {
-                    i = s.index(after: i)
-                    if (i != s.endIndex && s[i].isDigit()) {
-                        i = s.index(after: i)
-                        while i != s.endIndex && s[i].isDigit() {
-                            i = s.index(after: i)
-                        }
-
-                        return ParseState(seek: i, code: .complete)
-                    } else {
-                        return ParseState(seek: s.index(i, offsetBy: -2), code: .complete)
-                    }
-                } else {
-                    if (s[i].isDigit()) {
-                        i = s.index(after: i)
-                        while i != s.endIndex && s[i].isDigit() {
-                            i = s.index(after: i)
-                        }
-
-                        return ParseState(seek: i, code: .complete)
-                    } else {
-                        return ParseState(seek: s.index(before: i), code: .complete)
-                    }
-                }
-            } else {
-                return ParseState(seek: saveI, code: .complete)
-            }
-        default:
-            return ParseState(seek: i, code: .complete)
-        }
+        parseFloat(seek: seek, string: string)
     }
 
     override func parseWithResult(seek: String.Index, string: String) -> ParseResult<T> {
@@ -444,40 +485,7 @@ class FloatRule<T : BinaryFloatingPoint> : Rule<T> {
     }
 
     func hasMatch(seek: String.Index, string: String) -> Bool {
-        if (seek == string.endIndex) {
-            return false
-        }
-
-        let s = string.utf8
-        let i = seek.samePosition(in: s)!
-        var c = s[i]
-
-        if c.isDigit() {
-            return true
-        }
-        if c == ASCII.dot {
-            let next = s.index(after: i)
-            return next != s.endIndex && s[next].isDigit()
-        }
-
-        if c == ASCII.plus || c == ASCII.minus {
-            let next = s.index(after: i)
-            if next != s.endIndex {
-                c = s[next]
-                if c.isDigit() {
-                    return true
-                } else if c == ASCII.dot {
-                    let afterNext = s.index(after: next)
-                    return afterNext != s.endIndex && s[afterNext].isDigit()
-                } else {
-                    return false
-                }
-            } else {
-                return false
-            }
-        }
-
-        return false
+        hasFloatMatch(seek: seek, string: string)
     }
 
     override func name(name: String) -> FloatRule<T> {

@@ -9,6 +9,7 @@ enum ParseError : Error {
     case intOverflow(seek: String.Index)
     case uintOverflow(seek: String.Index)
     case invalidFloat(seek: String.Index)
+    case decimalOverflow(seek: String.Index)
     case charPredicateFailed(seek: String.Index)
     case intStartedFromZero(seek: String.Index)
     case diffFailed(seek: String.Index)
