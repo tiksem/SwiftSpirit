@@ -55,24 +55,24 @@ public extension String {
     }
 
     func indexOf<T>(rule: Rule<T>) -> String.Index? {
-        rule.findFirstSuccessfulRange(string: self)?.lowerBound
+        rule.findFirstSuccessfulRange(in: self)?.lowerBound
     }
 
     func findFirstMatch<T>(rule: Rule<T>) -> Range<String.Index>? {
-        rule.findFirstSuccessfulRange(string: self)
+        rule.findFirstSuccessfulRange(in: self)
     }
 
     func findFirstValue<T>(rule: Rule<T>) -> T? {
-        rule.findFirstSuccessfulResult(string: self)?.value
+        rule.findFirstSuccessfulResult(in: self)?.value
     }
 
     func findAllMatches<T>(rule: Rule<T>) -> [Range<String.Index>] {
-        rule.findAllSuccessfulRanges(string: self)
+        rule.findAllSuccessfulRanges(in: self)
     }
 
     func findAllValues<T>(rule: Rule<T>) -> [T] {
         var result = [T]()
-        rule.findAllSuccessfulResults(string: self) { range, value in
+        rule.findAllSuccessfulResults(in: self) { range, value in
             if let v = value {
                 result.append(v)
             }
@@ -82,11 +82,11 @@ public extension String {
     }
 
     func findAll<T>(rule: Rule<T>, callback: (_ range: Range<String.Index>, _ value: T?) -> Void) {
-        rule.findAllSuccessfulResults(string: self, callback: callback)
+        rule.findAllSuccessfulResults(in: self, callback: callback)
     }
 
     func replaceFirst<T>(rule: Rule<T>, with replacement: String) -> String {
-        if let range = rule.findFirstSuccessfulRange(string: self) {
+        if let range = rule.findFirstSuccessfulRange(in: self) {
             return self.replacingCharacters(in: range, with: replacement)
         }
 
@@ -94,7 +94,7 @@ public extension String {
     }
 
     func replaceFirst<T>(rule: Rule<T>, replacementProvider: (T) -> String) -> String {
-        if let result = rule.findFirstSuccessfulResult(string: self),
+        if let result = rule.findFirstSuccessfulResult(in: self),
            let value: T = result.value
         {
             return self.replacingCharacters(in: result.range, with: replacementProvider(value))
@@ -104,7 +104,7 @@ public extension String {
     }
 
     func replaceFirst<T, Replacement : CustomStringConvertible>(rule: Rule<T>, replacementProvider: (T) -> Replacement) -> String {
-        if let result = rule.findFirstSuccessfulResult(string: self),
+        if let result = rule.findFirstSuccessfulResult(in: self),
            let value: T = result.value
         {
             return self.replacingCharacters(in: result.range, with: replacementProvider(value).description)
@@ -115,7 +115,7 @@ public extension String {
 
     func replaceAll<T>(rule: Rule<T>, with replacement: String) -> String {
         var result = ""
-        let ranges = rule.findAllSuccessfulRanges(string: self)
+        let ranges = rule.findAllSuccessfulRanges(in: self)
         if ranges.isEmpty {
             return self
         }
@@ -135,7 +135,7 @@ public extension String {
     func replaceAll<T, Replacement : CustomStringConvertible>(rule: Rule<T>, replacementProvider: (T) -> Replacement) -> String {
         var result = ""
         var index = startIndex
-        rule.findAllSuccessfulResults(string: self) { range, value in
+        rule.findAllSuccessfulResults(in: self) { range, value in
             if let v = value {
                 result += self[index..<range.lowerBound]
                 index = range.upperBound
@@ -150,5 +150,9 @@ public extension String {
         result += self[index..<endIndex]
 
         return result
+    }
+
+    func countOccurrences<T>(rule: Rule<T>) -> Int {
+        rule.countOccurrences(in: self)
     }
 }

@@ -71,7 +71,7 @@ public class Rule<T> : RuleProtocol {
 }
 
 extension Rule {
-    @inline(__always) func findFirstSuccessfulRange(string: String) -> Range<String.Index>? {
+    @inline(__always) func findFirstSuccessfulRange(in string: String) -> Range<String.Index>? {
         var seek = string.startIndex
         repeat {
             let result = parse(seek: seek, string: string)
@@ -95,7 +95,7 @@ extension Rule {
         let value: T?
     }
 
-    @inline(__always) func findFirstSuccessfulResult(string: String) -> SearchResult? {
+    @inline(__always) func findFirstSuccessfulResult(in string: String) -> SearchResult? {
         var seek = string.startIndex
         repeat {
             let result = parseWithResult(seek: seek, string: string)
@@ -114,7 +114,7 @@ extension Rule {
         return nil
     }
 
-    @inline(__always) func findAllSuccessfulRanges(string: String) -> [Range<String.Index>] {
+    @inline(__always) func findAllSuccessfulRanges(in string: String) -> [Range<String.Index>] {
         var seek = string.startIndex
         var list = [Range<String.Index>]()
         repeat {
@@ -134,8 +134,28 @@ extension Rule {
         return list
     }
 
+    @inline(__always) func countOccurrences(in string: String) -> Int {
+        var seek = string.startIndex
+        var count = 0
+        repeat {
+            let result = parse(seek: seek, string: string)
+            if result.code == .complete {
+                count+=1
+            }
+
+            let newSeek = result.seek
+            if (newSeek == seek) {
+                seek = string.index(after: seek)
+            } else {
+                seek = newSeek
+            }
+        } while (seek != string.endIndex)
+
+        return count
+    }
+
     @inline(__always) func findAllSuccessfulResults(
-            string: String, callback: (_ range: Range<String.Index>, _ value: T?) -> Void
+            in string: String, callback: (_ range: Range<String.Index>, _ value: T?) -> Void
     ) {
         var seek = string.startIndex
         repeat {
